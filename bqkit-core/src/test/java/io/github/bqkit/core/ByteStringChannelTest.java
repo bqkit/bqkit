@@ -47,6 +47,13 @@ class ByteStringChannelTest {
     }
 
     @Test
+    void reports_the_end_of_the_payload_even_to_a_full_destination() throws IOException {
+        ByteStringChannel channel = new ByteStringChannel(ByteString.EMPTY);
+
+        assertThat(channel.read(ByteBuffer.allocate(0))).isEqualTo(-1);
+    }
+
+    @Test
     void stops_reading_once_closed() {
         ByteStringChannel channel = new ByteStringChannel(ByteString.copyFromUtf8("abc"));
         assertThat(channel.isOpen()).isTrue();

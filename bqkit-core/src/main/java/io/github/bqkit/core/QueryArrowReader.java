@@ -39,11 +39,13 @@ public class QueryArrowReader {
     }
 
     public void query(String sql, Consumer<VectorSchemaRoot> batches) {
+        Objects.requireNonNull(batches, "batches");
         readTable(QueryJobs.run(bigQuery, QueryJobs.anonymous(sql)), batches);
     }
 
     /** Writes the result to {@code destination} (truncated first) instead of the anonymous result table. */
     public void query(String sql, TableId destination, Consumer<VectorSchemaRoot> batches) {
+        Objects.requireNonNull(batches, "batches");
         readTable(QueryJobs.run(bigQuery, QueryJobs.into(sql, destination)), batches);
     }
 
@@ -53,6 +55,7 @@ public class QueryArrowReader {
      * Dictionary-encoded batches are rejected.
      */
     public void readTable(TableId table, Consumer<VectorSchemaRoot> batches) {
+        Objects.requireNonNull(batches, "batches");
         ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.ARROW);
         try (BufferAllocator allocator = new RootAllocator();
              VectorSchemaRoot root = VectorSchemaRoot.create(schema(session), allocator)) {
@@ -64,9 +67,11 @@ public class QueryArrowReader {
                     for (ReadRowsResponse response : responses) {
                         decode(response, allocator, loader, root, batches);
                     }
-                } finally {
-                    responses.cancel();
+                } catch (IOException | RuntimeException | Error failure) {
+                    ReadSessions.cancel(responses, failure);
+                    throw failure;
                 }
+                responses.cancel();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

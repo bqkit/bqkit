@@ -115,6 +115,24 @@ class QueryArrowReaderJobTest {
     }
 
     @Test
+    void rejects_a_null_consumer_before_running_the_query() {
+        assertThatThrownBy(() -> reader.query("SELECT 1", null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> reader.query("SELECT 1", TableId.of("shop", "result"), null))
+                .isInstanceOf(NullPointerException.class);
+
+        verify(bigQuery, never()).create(any(JobInfo.class));
+    }
+
+    @Test
+    void rejects_a_null_consumer_before_opening_a_read_session() {
+        assertThatThrownBy(() -> reader.readTable(TableId.of("shop", "products"), null))
+                .isInstanceOf(NullPointerException.class);
+
+        verify(readClient, never()).createReadSession(any(CreateReadSessionRequest.class));
+    }
+
+    @Test
     void reports_a_job_that_wrote_no_destination_table() {
         doReturn(QueryJobConfiguration.newBuilder("SELECT 1").build()).when(completed).getConfiguration();
 

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo-bq.png" alt="bqkit" width="128">
+</p>
+
 # bqkit
 
 [![CI Build](https://github.com/bqkit/bqkit/actions/workflows/ci.yml/badge.svg?branch=release/1.x)](https://github.com/bqkit/bqkit/actions/workflows/ci.yml?query=branch%3Arelease%2F1.x)

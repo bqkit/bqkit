@@ -16,6 +16,10 @@
     <name>bqkit-core</name>
     <description>BigQuery REST and Storage Read clients, query to Avro records, without Spring</description>
 
+    <properties>
+        <main.basedir>${project.parent.basedir}</main.basedir>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.cloud</groupId>

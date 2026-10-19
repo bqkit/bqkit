@@ -72,7 +72,8 @@ public class QueryAvroReader {
         ReadSession session = readClient.createReadSession(CreateReadSessionRequest.newBuilder()
                 .setParent("projects/" + project)
                 .setReadSession(ReadSession.newBuilder()
-                        .setTable("projects/%s/datasets/%s/tables/%s".formatted(project, table.getDataset(), table.getTable()))
+                        .setTable("projects/%s/datasets/%s/tables/%s"
+                                .formatted(project, table.getDataset(), table.getTable()))
                         .setDataFormat(DataFormat.AVRO))
                 .setMaxStreamCount(1)
                 .build());
@@ -88,7 +89,8 @@ public class QueryAvroReader {
         return records;
     }
 
-    private static void decode(ReadRowsResponse response, GenericDatumReader<GenericRecord> datumReader, List<GenericRecord> into) {
+    private static void decode(ReadRowsResponse response, GenericDatumReader<GenericRecord> datumReader,
+                               List<GenericRecord> into) {
         BinaryDecoder decoder = DecoderFactory.get()
                 .binaryDecoder(response.getAvroRows().getSerializedBinaryRows().toByteArray(), null);
         try {

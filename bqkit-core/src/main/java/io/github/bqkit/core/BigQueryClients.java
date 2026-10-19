@@ -37,7 +37,8 @@ public final class BigQueryClients {
                         ? NoCredentialsProvider.create()
                         : FixedCredentialsProvider.create(credentials));
         if (Objects.nonNull(connection.grpcEndpoint())) {
-            InstantiatingGrpcChannelProvider.Builder channel = BigQueryReadSettings.defaultGrpcTransportProviderBuilder()
+            InstantiatingGrpcChannelProvider.Builder channel = BigQueryReadSettings
+                    .defaultGrpcTransportProviderBuilder()
                     .setEndpoint(connection.grpcEndpoint());
             if (connection.plaintext()) {
                 channel.setChannelConfigurator(ManagedChannelBuilder::usePlaintext);

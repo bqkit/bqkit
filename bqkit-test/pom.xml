@@ -16,6 +16,11 @@
     <name>bqkit-test</name>
     <description>Testcontainers support for bqkit: BigQuery emulator container and @ServiceConnection</description>
 
+    <properties>
+        <main.basedir>${project.parent.basedir}</main.basedir>
+        <skipPitest>true</skipPitest>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.github.bqkit</groupId>

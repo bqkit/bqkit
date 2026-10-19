@@ -16,7 +16,8 @@ class BigQueryEmulatorContainerConnectionDetailsFactory
     }
 
     @Override
-    protected BigQueryConnectionDetails getContainerConnectionDetails(ContainerConnectionSource<BigQueryEmulatorContainer> source) {
+    protected BigQueryConnectionDetails getContainerConnectionDetails(
+            ContainerConnectionSource<BigQueryEmulatorContainer> source) {
         return new EmulatorConnectionDetails(source);
     }
 

@@ -16,6 +16,11 @@
     <name>bqkit-spring-boot-starter</name>
     <description>Spring Boot auto-configuration for bqkit, driven by BigQueryConnectionDetails</description>
 
+    <properties>
+        <main.basedir>${project.parent.basedir}</main.basedir>
+        <skipPitest>true</skipPitest>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.github.bqkit</groupId>

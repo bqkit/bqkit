@@ -1,5 +1,7 @@
 # bqkit
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.bqkit/bqkit-spring-boot-starter)](https://central.sonatype.com/namespace/io.github.bqkit)
+
 Spring Boot integration for Google BigQuery, built around the Storage Read API:
 
 - run a query into a destination table, then read that table in Avro through `BigQueryReadClient`;
@@ -21,11 +23,14 @@ Each major version of bqkit targets one Spring Boot generation:
 
 ## Usage
 
+`${bqkit.version}` is the latest version shown by the badge above. Until the first release,
+build bqkit locally with `mvn install` and use the version of the pom.
+
 ```xml
 <dependency>
     <groupId>io.github.bqkit</groupId>
     <artifactId>bqkit-spring-boot-starter</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>${bqkit.version}</version>
 </dependency>
 ```
 
@@ -54,7 +59,7 @@ bean replaces the connection built from the properties.
 <dependency>
     <groupId>io.github.bqkit</groupId>
     <artifactId>bqkit-test</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>${bqkit.version}</version>
     <scope>test</scope>
 </dependency>
 ```

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.api.gax.rpc.ServerStream;
@@ -116,6 +117,18 @@ class QueryArrowReaderReadSessionTest {
         ArgumentCaptor<CreateReadSessionRequest> request = ArgumentCaptor.forClass(CreateReadSessionRequest.class);
         verify(readClient).createReadSession(request.capture());
         assertThat(request.getValue().getParent()).isEqualTo("projects/other-project");
+    }
+
+    @Test
+    void fails_clearly_when_neither_the_table_nor_the_connection_has_a_project() {
+        BigQuery withoutProject = mock(BigQuery.class);
+        when(withoutProject.getOptions()).thenReturn(mock(BigQueryOptions.class));
+
+        assertThatThrownBy(() -> new QueryArrowReader(withoutProject, readClient)
+                .readTable(TableId.of("shop", "products"), batch -> { }))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("project");
+        verifyNoInteractions(readClient);
     }
 
     @Test

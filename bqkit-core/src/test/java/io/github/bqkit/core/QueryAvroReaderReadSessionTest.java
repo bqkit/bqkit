@@ -6,12 +6,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.api.gax.rpc.ServerStream;
 import com.google.api.gax.rpc.ServerStreamingCallable;
 import com.google.cloud.NoCredentials;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.AvroRows;
 import com.google.cloud.bigquery.storage.v1.AvroSchema;
@@ -62,6 +64,32 @@ class QueryAvroReaderReadSessionTest {
         assertThat(request.getValue().getParent()).isEqualTo("projects/my-project");
         assertThat(request.getValue().getReadSession().getTable())
                 .isEqualTo("projects/other-project/datasets/shop/tables/products");
+    }
+
+    @Test
+    void bills_the_read_to_the_project_of_the_table_when_the_connection_has_no_default_project() {
+        BigQuery withoutProject = mock(BigQuery.class);
+        when(withoutProject.getOptions()).thenReturn(mock(BigQueryOptions.class));
+        when(readClient.createReadSession(any(CreateReadSessionRequest.class))).thenReturn(ReadSession.newBuilder()
+                .setAvroSchema(AvroSchema.newBuilder().setSchema(EMPTY_RECORD))
+                .build());
+
+        new QueryAvroReader(withoutProject, readClient).readTable(TableId.of("other-project", "shop", "products"));
+
+        ArgumentCaptor<CreateReadSessionRequest> request = ArgumentCaptor.forClass(CreateReadSessionRequest.class);
+        verify(readClient).createReadSession(request.capture());
+        assertThat(request.getValue().getParent()).isEqualTo("projects/other-project");
+    }
+
+    @Test
+    void fails_clearly_when_neither_the_table_nor_the_connection_has_a_project() {
+        BigQuery withoutProject = mock(BigQuery.class);
+        when(withoutProject.getOptions()).thenReturn(mock(BigQueryOptions.class));
+
+        assertThatThrownBy(() -> new QueryAvroReader(withoutProject, readClient).readTable(TableId.of("shop", "products")))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("project");
+        verifyNoInteractions(readClient);
     }
 
     @Test

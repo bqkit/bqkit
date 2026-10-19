@@ -65,9 +65,11 @@ List<GenericRecord> rows = reader.query(
 anonymous result table that BigQuery creates for the job. `readTable(table)` reads an existing table.
 
 The read session is created in the connection project (`project-id`), which needs
-`bigquery.readsessions.create` and pays for the read, whatever the project of the table. The connection
-project's service account also needs `bigquery.readsessions.getData` on the table. Without a connection
-project, the project of the table is used.
+`bigquery.readsessions.create` and pays for the read, whatever the project of the table. The service
+account of the connection also needs `bigquery.readsessions.getData` on the table. `project-id` is the
+connection project when it is set; otherwise the Google client library picks the project of the credentials
+or `GOOGLE_CLOUD_PROJECT`, and only if it finds none is the project of the table used. Set `project-id` to
+be sure of who pays.
 
 ### Avro or Arrow
 

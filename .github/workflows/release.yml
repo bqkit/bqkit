@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
@@ -34,7 +36,8 @@ jobs:
           base=https://archive.apache.org/dist/maven/maven-3/3.9.16/binaries
           archive=apache-maven-3.9.16-bin.tar.gz
           curl -fsSLO "$base/$archive"
-          echo "$(curl -fsSL "$base/$archive.sha512" | cut -d' ' -f1)  $archive" | sha512sum -c -
+          echo "831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6  $archive" \
+            | sha512sum -c -
           tar -xzf "$archive"
           echo "$RUNNER_TEMP/apache-maven-3.9.16/bin" >> "$GITHUB_PATH"
 
@@ -46,6 +49,9 @@ jobs:
           revision=$(sed -n 's|.*<revision>\(.*\)</revision>.*|\1|p' pom.xml)
           [ "${version%%.*}" = "${revision%%.*}" ] \
             || { echo "Tag ${GITHUB_REF_NAME} does not match major version ${revision%%.*} of the pom"; exit 1; }
+          branch="release/${version%%.*}.x"
+          git merge-base --is-ancestor "$GITHUB_SHA" "origin/$branch" \
+            || { echo "Tag ${GITHUB_REF_NAME} is not on ${branch}"; exit 1; }
 
       - name: Publish
         run: |

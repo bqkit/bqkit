@@ -166,6 +166,10 @@ class QueryAvroReaderJobTest {
         ArgumentCaptor<JobInfo> submitted = ArgumentCaptor.forClass(JobInfo.class);
         verify(bigQuery).create(submitted.capture());
         assertThat((QueryJobConfiguration) submitted.getValue().getConfiguration()).isEqualTo(CONFIGURED);
+        ArgumentCaptor<CreateReadSessionRequest> request = ArgumentCaptor.forClass(CreateReadSessionRequest.class);
+        verify(readClient).createReadSession(request.capture());
+        assertThat(request.getValue().getReadSession().getTable())
+                .isEqualTo("projects/my-project/datasets/shop/tables/query_result");
     }
 
     @Test

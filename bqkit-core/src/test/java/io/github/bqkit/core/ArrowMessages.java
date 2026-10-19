@@ -2,13 +2,17 @@ package io.github.bqkit.core;
 
 import com.google.cloud.bigquery.storage.v1.ArrowSchema;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
+import com.google.flatbuffers.FlatBufferBuilder;
 import com.google.protobuf.ByteString;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.apache.arrow.flatbuf.MessageHeader;
+import org.apache.arrow.flatbuf.RecordBatch;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.VarCharVector;
@@ -17,6 +21,7 @@ import org.apache.arrow.vector.VectorUnloader;
 import org.apache.arrow.vector.ipc.WriteChannel;
 import org.apache.arrow.vector.ipc.message.ArrowDictionaryBatch;
 import org.apache.arrow.vector.ipc.message.ArrowRecordBatch;
+import org.apache.arrow.vector.ipc.message.IpcOption;
 import org.apache.arrow.vector.ipc.message.MessageSerializer;
 import org.apache.arrow.vector.types.pojo.Schema;
 
@@ -59,6 +64,32 @@ final class ArrowMessages {
                     MessageSerializer.serialize(channel, batch);
                 }
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return ByteString.copyFrom(out.toByteArray());
+    }
+
+    /** A record batch claiming more rows than Arrow Java can hold, which fails to deserialize after its body is read. */
+    static ByteString oversizedRecordBatch() {
+        FlatBufferBuilder builder = new FlatBufferBuilder();
+        RecordBatch.startNodesVector(builder, 0);
+        int nodes = builder.endVector();
+        RecordBatch.startBuffersVector(builder, 0);
+        int buffers = builder.endVector();
+        RecordBatch.startRecordBatch(builder);
+        RecordBatch.addLength(builder, Integer.MAX_VALUE + 1L);
+        RecordBatch.addNodes(builder, nodes);
+        RecordBatch.addBuffers(builder, buffers);
+        int recordBatch = RecordBatch.endRecordBatch(builder);
+        byte[] body = new byte[8];
+        ByteBuffer message = MessageSerializer.serializeMessage(
+                builder, MessageHeader.RecordBatch, recordBatch, body.length, IpcOption.DEFAULT);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            WriteChannel channel = new WriteChannel(Channels.newChannel(out));
+            MessageSerializer.writeMessageBuffer(channel, message.remaining(), message);
+            channel.write(body);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

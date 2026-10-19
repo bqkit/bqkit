@@ -104,6 +104,19 @@ The next response of the stream is only requested once every row of the current 
 the callback, so a slow callback slows the read down instead of filling the memory. If a row cannot be decoded or the callback throws, the read stops and
 the stream is cancelled: the rows before it have already been handed to the callback.
 
+`QueryAvroReader` returns BigQuery values as Java types:
+
+- `STRING` as `String`;
+- `TIMESTAMP` as `Instant`;
+- `DATE` as `LocalDate`;
+- `TIME` as `LocalTime`;
+- `NUMERIC` and `BIGNUMERIC` as `BigDecimal`;
+- `INT64` as `Long`, `FLOAT64` as `Double`, `BOOL` as `Boolean`, `BYTES` as `ByteBuffer`;
+- `DATETIME`, `GEOGRAPHY` and `JSON` as `String`, as BigQuery sends them;
+- `STRUCT` as a nested `GenericRecord`, `ARRAY` as a `List`.
+
+A `NULL` value is `null`.
+
 `QueryArrowReader` takes the same arguments, and calls the callback once per record batch:
 
 ```java
@@ -230,7 +243,7 @@ public class ProductRepository {
 
     public List<String> findNamesInStock() {
         return reader.query("SELECT name FROM shop.products WHERE stock > 0", RESULT).stream()
-                .map(row -> row.get("name").toString())
+                .map(row -> (String) row.get("name"))
                 .toList();
     }
 }
@@ -289,6 +302,7 @@ each its own dataset or destination table (see the limits below).
 - `QueryAvroReader.query(sql)` fails on the emulator: it names the anonymous result table after the
   job id, which is not a valid Avro name ([goccy/bigquery-emulator#527](https://github.com/goccy/bigquery-emulator/issues/527)).
   Use `query(sql, destination)` in tests. `QueryArrowReader` is not affected.
+- The emulator fails to send a `TIME` column in Avro (`cannot transform to binary time-micros`).
 - The emulator ignores `WRITE_TRUNCATE`: `query(sql, destination)` appends to the destination
   table instead of replacing it, so a second query into the same table returns the rows of both.
   Use a distinct destination table per test, or drop it before each test.

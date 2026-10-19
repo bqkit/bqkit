@@ -14,9 +14,12 @@ import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryParameterValue;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.avro.generic.GenericRecord;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -65,6 +68,23 @@ class QueryAvroReaderTest {
 
         assertThat(rows).extracting(r -> r.get("name").toString())
                 .containsExactlyInAnyOrder("banana", "cherry");
+    }
+
+    /** TIME is left out: bigquery-emulator 0.8.1 fails to encode it in Avro, see QueryAvroReaderTypesTest. */
+    @Test
+    void reads_bigquery_types_as_java_types_on_the_emulator() {
+        List<GenericRecord> rows = reader.query(
+                "SELECT TIMESTAMP '2026-10-20 08:30:00.123456+00' AS ts, DATE '2026-10-20' AS day,"
+                        + " NUMERIC '12.345' AS amount, 'apple' AS name",
+                TableId.of("shop", "typed_result"));
+
+        assertThat(rows).singleElement().satisfies(row -> {
+            assertThat(row.get("ts")).isEqualTo(Instant.parse("2026-10-20T08:30:00.123456Z"));
+            assertThat(row.get("day")).isEqualTo(LocalDate.of(2026, 10, 20));
+            assertThat(row.get("amount")).asInstanceOf(InstanceOfAssertFactories.BIG_DECIMAL)
+                    .isEqualByComparingTo("12.345");
+            assertThat(row.get("name")).isEqualTo("apple");
+        });
     }
 
     @Test

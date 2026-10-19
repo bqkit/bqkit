@@ -16,7 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import org.apache.avro.Conversions;
 import org.apache.avro.Schema;
+import org.apache.avro.data.TimeConversions;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
@@ -24,6 +27,12 @@ import org.apache.avro.io.DecoderFactory;
 
 /** Runs a query into a destination table, then reads that table through the Storage Read API in Avro. */
 public class QueryAvroReader {
+
+    /**
+     * TIMESTAMP as {@code Instant}, DATE as {@code LocalDate}, TIME as {@code LocalTime},
+     * NUMERIC and BIGNUMERIC as {@code BigDecimal}.
+     */
+    private static final GenericData JAVA_TYPES = javaTypes();
 
     private final BigQuery bigQuery;
     private final BigQueryReadClient readClient;
@@ -84,7 +93,8 @@ public class QueryAvroReader {
         Objects.requireNonNull(rows, "rows");
         ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.AVRO);
         Schema schema = new Schema.Parser().parse(session.getAvroSchema().getSchema());
-        GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema);
+        readStringsAsString(schema);
+        GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema, schema, JAVA_TYPES);
         for (ReadStream stream : session.getStreamsList()) {
             ReadRowsRequest request = ReadRowsRequest.newBuilder().setReadStream(stream.getName()).build();
             ServerStream<ReadRowsResponse> responses = readClient.readRowsCallable().call(request);
@@ -97,6 +107,26 @@ public class QueryAvroReader {
                 throw failure;
             }
             responses.cancel();
+        }
+    }
+
+    private static GenericData javaTypes() {
+        GenericData data = new GenericData();
+        data.addLogicalTypeConversion(new TimeConversions.TimestampMicrosConversion());
+        data.addLogicalTypeConversion(new TimeConversions.DateConversion());
+        data.addLogicalTypeConversion(new TimeConversions.TimeMicrosConversion());
+        data.addLogicalTypeConversion(new Conversions.DecimalConversion());
+        return data;
+    }
+
+    /** STRING as {@code String} instead of {@code Utf8}, nested ones included: the fast reader reads it per field. */
+    private static void readStringsAsString(Schema schema) {
+        switch (schema.getType()) {
+            case STRING -> GenericData.setStringType(schema, GenericData.StringType.String);
+            case RECORD -> schema.getFields().forEach(field -> readStringsAsString(field.schema()));
+            case UNION -> schema.getTypes().forEach(QueryAvroReader::readStringsAsString);
+            case ARRAY -> readStringsAsString(schema.getElementType());
+            default -> { }
         }
     }
 

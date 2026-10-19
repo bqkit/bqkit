@@ -9,10 +9,9 @@ import com.google.cloud.bigquery.storage.v1.ReadRowsRequest;
 import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
 import com.google.cloud.bigquery.storage.v1.ReadStream;
-import java.io.ByteArrayInputStream;
+import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.channels.Channels;
 import java.util.Objects;
 import java.util.function.Consumer;
 import org.apache.arrow.flatbuf.MessageHeader;
@@ -82,7 +81,7 @@ public class QueryArrowReader {
     private static void decode(ReadRowsResponse response, BufferAllocator allocator, VectorLoader loader,
                                VectorSchemaRoot root, Consumer<VectorSchemaRoot> batches) throws IOException {
         MessageChannelReader messages = new MessageChannelReader(
-                channel(response.getArrowRecordBatch().getSerializedRecordBatch().toByteArray()), allocator);
+                channel(response.getArrowRecordBatch().getSerializedRecordBatch()), allocator);
         for (MessageResult message = messages.readNext(); Objects.nonNull(message); message = messages.readNext()) {
             byte header = message.getMessage().headerType();
             if (header == MessageHeader.DictionaryBatch) {
@@ -104,10 +103,10 @@ public class QueryArrowReader {
 
     private static Schema schema(ReadSession session) throws IOException {
         return MessageSerializer.deserializeSchema(
-                channel(session.getArrowSchema().getSerializedSchema().toByteArray()));
+                channel(session.getArrowSchema().getSerializedSchema()));
     }
 
-    private static ReadChannel channel(byte[] bytes) {
-        return new ReadChannel(Channels.newChannel(new ByteArrayInputStream(bytes)));
+    private static ReadChannel channel(ByteString bytes) {
+        return new ReadChannel(new ByteStringChannel(bytes));
     }
 }

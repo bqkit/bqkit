@@ -88,9 +88,9 @@ public class QueryArrowReader {
                 channel(response.getArrowRecordBatch().getSerializedRecordBatch()), allocator);
         for (MessageResult message = messages.readNext(); Objects.nonNull(message); message = messages.readNext()) {
             byte header = message.getMessage().headerType();
-            ArrowBuf body = message.getBodyBuffer();
+            ArrowBuf body = Objects.requireNonNullElseGet(message.getBodyBuffer(), allocator::getEmpty);
             if (header != MessageHeader.RecordBatch) {
-                release(body);
+                body.close();
                 if (header == MessageHeader.DictionaryBatch) {
                     throw new IllegalStateException("Arrow dictionary batches are not supported");
                 }
@@ -111,14 +111,8 @@ public class QueryArrowReader {
         try {
             return MessageSerializer.deserializeRecordBatch(message.getMessage(), body);
         } catch (IOException | RuntimeException | Error failure) {
-            release(body);
-            throw failure;
-        }
-    }
-
-    private static void release(ArrowBuf body) {
-        if (Objects.nonNull(body)) {
             body.close();
+            throw failure;
         }
     }
 

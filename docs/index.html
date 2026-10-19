@@ -300,7 +300,7 @@
       <div class="pills">
         <span class="pill">Java 21</span>
         <span class="pill">Spring Boot 3.5</span>
-        <span class="pill">Storage Read API · Avro</span>
+        <span class="pill">Storage Read API · Avro · Arrow</span>
         <span class="pill">Testcontainers</span>
         <span class="pill">Apache-2.0</span>
       </div>
@@ -329,8 +329,8 @@
     <div class="features">
       <div class="card reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><path d="M17 15l3 3-3 3"/></svg></div>
-        <h3>Query to Avro</h3>
-        <p>Run a query into a destination table, then stream it in Avro through <code>BigQueryReadClient</code>.</p>
+        <h3>Avro or Arrow</h3>
+        <p>Run a query into a destination table, then stream it through <code>BigQueryReadClient</code>: rows in Avro, or columnar batches in Arrow.</p>
       </div>
       <div class="card reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
@@ -416,8 +416,8 @@
       <p>Use the core alone, or let the starter wire it for you.</p>
     </div>
     <div class="mods">
-      <div class="mod reveal"><code>bqkit-core</code><span>Spring-free clients: <code>BigQueryClients</code>, <code>CredentialsFactory</code>, <code>QueryAvroReader</code>.</span></div>
-      <div class="mod reveal"><code>bqkit-spring-boot-starter</code><span>Auto-configuration of <code>BigQuery</code>, <code>BigQueryReadClient</code> and <code>QueryAvroReader</code>.</span></div>
+      <div class="mod reveal"><code>bqkit-core</code><span>Spring-free clients: <code>BigQueryClients</code>, <code>CredentialsFactory</code>, <code>QueryAvroReader</code>, <code>QueryArrowReader</code>.</span></div>
+      <div class="mod reveal"><code>bqkit-spring-boot-starter</code><span>Auto-configuration of <code>BigQuery</code>, <code>BigQueryReadClient</code>, <code>QueryAvroReader</code> and <code>QueryArrowReader</code>.</span></div>
       <div class="mod reveal"><code>bqkit-test</code><span>Emulator container and <code>@ServiceConnection</code> support for tests.</span></div>
     </div>
   </div>
@@ -706,7 +706,7 @@
         <p>bqkit uses <code>testproject</code>.</p>
       </div></div>
       <div class="g reveal"><span class="tagk warn">query(sql)</span><div>
-        <p><strong><code>query(sql)</code> fails.</strong> The emulator names the anonymous result table after the job id, which is not a valid Avro name (<a href="https://github.com/goccy/bigquery-emulator/issues/527">bigquery-emulator#527</a>).</p>
+        <p><strong><code>query(sql)</code> fails in Avro.</strong> The emulator names the anonymous result table after the job id, which is not a valid Avro name (<a href="https://github.com/goccy/bigquery-emulator/issues/527">bigquery-emulator#527</a>). <code>QueryArrowReader</code> is not affected.</p>
         <p>Use <code>query(sql, destination)</code> in tests.</p>
       </div></div>
       <div class="g reveal"><span class="tagk warn">truncate</span><div>

@@ -77,6 +77,9 @@ and exposes the gRPC port of the Storage Read API.
 - `query(sql)` fails on the emulator: it names the anonymous result table after the job id,
   which is not a valid Avro name ([goccy/bigquery-emulator#527](https://github.com/goccy/bigquery-emulator/issues/527)).
   Use `query(sql, destination)` in tests.
+- The emulator ignores `WRITE_TRUNCATE`: `query(sql, destination)` appends to the destination
+  table instead of replacing it, so a second query into the same table returns the rows of both.
+  Use a distinct destination table per test, or drop it before each test.
 - See also [goccy/bigquery-emulator#508](https://github.com/goccy/bigquery-emulator/pull/508).
 
 ## Build

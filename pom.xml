@@ -321,6 +321,12 @@
 
     <profiles>
         <profile>
+            <id>benchmarks</id>
+            <modules>
+                <module>bqkit-benchmarks</module>
+            </modules>
+        </profile>
+        <profile>
             <id>pitest</id>
             <build>
                 <plugins>

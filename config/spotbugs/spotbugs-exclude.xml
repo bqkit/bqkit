@@ -4,4 +4,7 @@
         <Class name="~io\.github\.bqkit\.core\.Query(Avro|Arrow)Reader"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <Match>
+        <Package name="io.github.bqkit.benchmarks.jmh_generated"/>
+    </Match>
 </FindBugsFilter>

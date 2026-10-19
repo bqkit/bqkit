@@ -53,6 +53,60 @@ anonymous result table that BigQuery creates for the job. `readTable(table)` rea
 Every bean backs off when the application defines its own. Defining a `BigQueryConnectionDetails`
 bean replaces the connection built from the properties.
 
+The starter ships the configuration metadata of the `bqkit.*` keys: your IDE completes and documents
+them in `application.yml`.
+
+### Without the starter
+
+`bqkit-core` has no Spring dependency. Declare the beans yourself, with keys of your own in
+`application.yml`:
+
+```xml
+<dependency>
+    <groupId>io.github.bqkit</groupId>
+    <artifactId>bqkit-core</artifactId>
+    <version>${bqkit.version}</version>
+</dependency>
+```
+
+```yaml
+bigquery:
+  project-id: my-project
+  impersonate-service-account: reader@my-project.iam.gserviceaccount.com # optional
+```
+
+```java
+@Configuration
+public class BigQueryConfig {
+
+    @Bean
+    BigQueryConnection bigQueryConnection(
+            @Value("${bigquery.project-id}") String projectId,
+            @Value("${bigquery.impersonate-service-account:}") String impersonateServiceAccount) {
+        return new BigQueryConnection(projectId, null, null, false,
+                CredentialsFactory.create(impersonateServiceAccount));
+    }
+
+    @Bean
+    BigQuery bigQuery(BigQueryConnection connection) {
+        return BigQueryClients.bigQuery(connection);
+    }
+
+    @Bean(destroyMethod = "close")
+    BigQueryReadClient bigQueryReadClient(BigQueryConnection connection) {
+        return BigQueryClients.readClient(connection);
+    }
+
+    @Bean
+    QueryAvroReader queryAvroReader(BigQuery bigQuery, BigQueryReadClient readClient) {
+        return new QueryAvroReader(bigQuery, readClient);
+    }
+}
+```
+
+The `null` hosts select the Google endpoints. The `@ServiceConnection` of `bqkit-test` relies on the
+starter.
+
 ## Testing
 
 ```xml

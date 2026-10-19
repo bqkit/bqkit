@@ -195,6 +195,7 @@
   .code { background: var(--code-bg); border: 1px solid var(--code-line); border-radius: var(--radius); overflow: hidden; margin: 0; }
   .code-grid + .code, .code + .code, .code + p, p + .code { margin-top: 20px; }
   .code-grid > .code { margin-top: 0; }
+  .prose + .code-grid { margin-top: 20px; }
   .code .ct { display: flex; align-items: center; gap: 8px; padding: 11px 15px; border-bottom: 1px solid var(--code-line);
     font-family: var(--mono); font-size: 12.5px; color: #8b97a7; }
   .code .ct .tag { color: var(--accent); }
@@ -462,6 +463,60 @@
       <div class="mod reveal"><code>readTable(table)</code><span>Reads an existing table.</span></div>
     </div>
     <div class="prose"><p>Every bean backs off when the application defines its own. Defining a <code>BigQueryConnectionDetails</code> bean replaces the connection built from the properties.</p></div>
+
+    <div class="prose"><p>The starter ships the configuration metadata of the <code>bqkit.*</code> keys: your IDE completes and documents them in <code>application.yml</code>.</p></div>
+
+    <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">Without the starter</h3>
+    <div class="prose"><p><code>bqkit-core</code> has no Spring dependency. Declare the beans yourself, with keys of your own in <code>application.yml</code>:</p></div>
+    <div class="code-grid">
+      <div class="code reveal">
+        <div class="ct"><span class="tag">pom.xml</span> — core only
+          <button class="copy" data-copy="core-dep">Copy</button></div>
+<pre id="core-dep"><code><span class="t">&lt;dependency&gt;</span>
+    <span class="t">&lt;groupId&gt;</span>io.github.bqkit<span class="t">&lt;/groupId&gt;</span>
+    <span class="t">&lt;artifactId&gt;</span>bqkit-core<span class="t">&lt;/artifactId&gt;</span>
+    <span class="t">&lt;version&gt;</span><span class="bqkit-version">${bqkit.version}</span><span class="t">&lt;/version&gt;</span>
+<span class="t">&lt;/dependency&gt;</span></code></pre>
+      </div>
+      <div class="code reveal">
+        <div class="ct"><span class="tag">application.yml</span> — your own keys
+          <button class="copy" data-copy="core-config">Copy</button></div>
+<pre id="core-config"><code><span class="t">bigquery</span>:
+  <span class="t">project-id</span>: <span class="s">my-project</span>
+  <span class="t">impersonate-service-account</span>: <span class="s">reader@my-project.iam.gserviceaccount.com</span> <span class="c"># optional</span></code></pre>
+      </div>
+    </div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — BigQueryConfig
+        <button class="copy" data-copy="core-beans">Copy</button></div>
+<pre id="core-beans"><code><span class="a">@Configuration</span>
+<span class="k">public class</span> <span class="t">BigQueryConfig</span> {
+
+    <span class="a">@Bean</span>
+    <span class="t">BigQueryConnection</span> bigQueryConnection(
+            <span class="a">@Value</span>(<span class="s">"${bigquery.project-id}"</span>) <span class="t">String</span> projectId,
+            <span class="a">@Value</span>(<span class="s">"${bigquery.impersonate-service-account:}"</span>) <span class="t">String</span> impersonateServiceAccount) {
+        <span class="k">return new</span> <span class="t">BigQueryConnection</span>(projectId, <span class="k">null</span>, <span class="k">null</span>, <span class="k">false</span>,
+                <span class="t">CredentialsFactory</span>.create(impersonateServiceAccount));
+    }
+
+    <span class="a">@Bean</span>
+    <span class="t">BigQuery</span> bigQuery(<span class="t">BigQueryConnection</span> connection) {
+        <span class="k">return</span> <span class="t">BigQueryClients</span>.bigQuery(connection);
+    }
+
+    <span class="a">@Bean</span>(destroyMethod = <span class="s">"close"</span>)
+    <span class="t">BigQueryReadClient</span> bigQueryReadClient(<span class="t">BigQueryConnection</span> connection) {
+        <span class="k">return</span> <span class="t">BigQueryClients</span>.readClient(connection);
+    }
+
+    <span class="a">@Bean</span>
+    <span class="t">QueryAvroReader</span> queryAvroReader(<span class="t">BigQuery</span> bigQuery, <span class="t">BigQueryReadClient</span> readClient) {
+        <span class="k">return new</span> <span class="t">QueryAvroReader</span>(bigQuery, readClient);
+    }
+}</code></pre>
+    </div>
+    <div class="prose"><p>The <code>null</code> hosts select the Google endpoints. The <code>@ServiceConnection</code> of <code>bqkit-test</code> relies on the starter.</p></div>
   </div>
 </section>
 

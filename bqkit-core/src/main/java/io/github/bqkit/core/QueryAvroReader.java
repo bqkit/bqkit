@@ -2,6 +2,7 @@ package io.github.bqkit.core;
 
 import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import com.google.cloud.bigquery.storage.v1.DataFormat;
@@ -51,6 +52,20 @@ public class QueryAvroReader {
     public void query(String sql, TableId destination, Consumer<GenericRecord> rows) {
         Objects.requireNonNull(rows, "rows");
         readTable(QueryJobs.run(bigQuery, QueryJobs.into(sql, destination)), rows);
+    }
+
+    /**
+     * Runs {@code configuration} as is, for query parameters, {@code maximumBytesBilled}, labels or location,
+     * then reads the table the job wrote to.
+     */
+    public List<GenericRecord> query(QueryJobConfiguration configuration) {
+        return readTable(QueryJobs.run(bigQuery, configuration));
+    }
+
+    /** Streams the result of {@code configuration}, run as is, to {@code rows}. */
+    public void query(QueryJobConfiguration configuration, Consumer<GenericRecord> rows) {
+        Objects.requireNonNull(rows, "rows");
+        readTable(QueryJobs.run(bigQuery, configuration), rows);
     }
 
     /** Keeps every row in memory: stream large tables with {@link #readTable(TableId, Consumer)}. */

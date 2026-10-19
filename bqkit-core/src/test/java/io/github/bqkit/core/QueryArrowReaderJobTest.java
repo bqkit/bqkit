@@ -16,9 +16,11 @@ import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.JobStatus;
 import com.google.cloud.bigquery.QueryJobConfiguration;
+import com.google.cloud.bigquery.QueryParameterValue;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import com.google.cloud.bigquery.storage.v1.CreateReadSessionRequest;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,14 @@ import org.mockito.ArgumentCaptor;
 class QueryArrowReaderJobTest {
 
     private static final TableId DESTINATION = TableId.of("shop", "query_result");
+
+    private static final QueryJobConfiguration CONFIGURED = QueryJobConfiguration.newBuilder(
+                    "SELECT name FROM shop.products WHERE id = @id")
+            .addNamedParameter("id", QueryParameterValue.int64(2))
+            .setMaximumBytesBilled(1_000_000L)
+            .setLabels(Map.of("team", "catalog"))
+            .setDestinationTable(DESTINATION)
+            .build();
 
     private final BigQuery bigQuery = mock(BigQuery.class);
     private final BigQueryReadClient readClient = mock(BigQueryReadClient.class);
@@ -115,10 +125,21 @@ class QueryArrowReaderJobTest {
     }
 
     @Test
+    void streams_the_result_of_the_given_job_configuration_as_is() {
+        reader.query(CONFIGURED, batch -> { });
+
+        ArgumentCaptor<JobInfo> submitted = ArgumentCaptor.forClass(JobInfo.class);
+        verify(bigQuery).create(submitted.capture());
+        assertThat((QueryJobConfiguration) submitted.getValue().getConfiguration()).isEqualTo(CONFIGURED);
+    }
+
+    @Test
     void rejects_a_null_consumer_before_running_the_query() {
         assertThatThrownBy(() -> reader.query("SELECT 1", null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> reader.query("SELECT 1", TableId.of("shop", "result"), null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> reader.query(CONFIGURED, null))
                 .isInstanceOf(NullPointerException.class);
 
         verify(bigQuery, never()).create(any(JobInfo.class));

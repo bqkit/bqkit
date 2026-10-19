@@ -64,6 +64,18 @@ List<GenericRecord> rows = reader.query(
 `query(sql, destination)` truncates the destination table before writing. `query(sql)` reads the
 anonymous result table that BigQuery creates for the job. `readTable(table)` reads an existing table.
 
+`query(configuration)` runs a `QueryJobConfiguration` as is, for query parameters, `maximumBytesBilled`,
+labels or location. It sets no write disposition: set the destination and `WRITE_TRUNCATE` yourself if you
+need them.
+
+```java
+List<GenericRecord> rows = reader.query(QueryJobConfiguration.newBuilder(
+                "SELECT name FROM `my-project.shop.products` WHERE price > @price")
+        .addNamedParameter("price", QueryParameterValue.float64(1.5))
+        .setMaximumBytesBilled(1_000_000_000L)
+        .build());
+```
+
 The read session is created in the connection project (`project-id`), which needs
 `bigquery.readsessions.create` and pays for the read, whatever the project of the table. The service
 account of the connection also needs `bigquery.readsessions.getData` on the table. `project-id` is the
@@ -80,8 +92,8 @@ The starter declares both readers: inject the one that fits the use case.
 - `QueryArrowReader` hands the result to a callback, one columnar record batch at a time: to work on
   columns.
 
-`QueryAvroReader` streams the rows with `query(sql, rows)`, `query(sql, destination, rows)` or
-`readTable(table, rows)`:
+`QueryAvroReader` streams the rows with `query(sql, rows)`, `query(sql, destination, rows)`,
+`query(configuration, rows)` or `readTable(table, rows)`:
 
 ```java
 reader.query("SELECT name FROM `my-project.shop.products`", TableId.of("shop", "query_result"),
@@ -172,8 +184,7 @@ public class BigQueryConfig {
 ```
 
 `BigQueryConnection.google(...)` targets the Google endpoints; `BigQueryConnection.emulator(...)` targets an
-emulator. The `@ServiceConnection` of `bqkit-test` relies on the
-starter.
+emulator. The `@ServiceConnection` of `bqkit-test` relies on the starter.
 
 ## Testing
 

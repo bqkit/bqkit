@@ -45,7 +45,7 @@ class QueryArrowReaderReadSessionTest {
     private final BigQueryReadClient readClient = mock(BigQueryReadClient.class);
 
     @Test
-    void reads_a_table_of_another_project_in_that_project() {
+    void bills_the_read_of_a_table_of_another_project_to_the_connection_project() {
         when(readClient.createReadSession(any(CreateReadSessionRequest.class))).thenReturn(ArrowMessages.session());
 
         new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("other-project", "shop", "products"),
@@ -53,7 +53,7 @@ class QueryArrowReaderReadSessionTest {
 
         ArgumentCaptor<CreateReadSessionRequest> request = ArgumentCaptor.forClass(CreateReadSessionRequest.class);
         verify(readClient).createReadSession(request.capture());
-        assertThat(request.getValue().getParent()).isEqualTo("projects/other-project");
+        assertThat(request.getValue().getParent()).isEqualTo("projects/my-project");
         assertThat(request.getValue().getReadSession().getTable())
                 .isEqualTo("projects/other-project/datasets/shop/tables/products");
     }

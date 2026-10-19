@@ -11,6 +11,7 @@ import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.JobStatus;
 import com.google.cloud.bigquery.QueryJobConfiguration;
+import com.google.cloud.bigquery.QueryParameterValue;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import java.util.ArrayList;
@@ -83,6 +84,17 @@ class QueryAvroReaderTest {
                 TableId.of("shop", "streamed_result"), row -> names.add(row.get("name").toString()));
 
         assertThat(names).containsExactlyInAnyOrder("banana", "cherry");
+    }
+
+    @Test
+    void runs_a_parameterized_job_configuration_then_reads_its_destination_in_avro() {
+        List<GenericRecord> rows = reader.query(QueryJobConfiguration.newBuilder(
+                        "SELECT name FROM `" + Emulator.PROJECT_ID + ".shop.products` WHERE id = @id")
+                .addNamedParameter("id", QueryParameterValue.int64(2))
+                .setDestinationTable(TableId.of("shop", "parameterized_result"))
+                .build());
+
+        assertThat(rows).extracting(r -> r.get("name").toString()).containsExactly("banana");
     }
 
     @Test

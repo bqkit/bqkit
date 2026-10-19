@@ -78,6 +78,74 @@ class ProductRepositoryTest {
 `BqkitBigQueryEmulatorContainer` runs `ghcr.io/goccy/bigquery-emulator:0.8.1` on project `testproject`
 and exposes the gRPC port of the Storage Read API.
 
+### A complete test
+
+The application code queries through `QueryAvroReader`:
+
+```java
+@Repository
+public class ProductRepository {
+
+    private static final TableId RESULT = TableId.of("shop", "products_in_stock");
+
+    private final QueryAvroReader reader;
+
+    public ProductRepository(QueryAvroReader reader) {
+        this.reader = reader;
+    }
+
+    public List<String> findNamesInStock() {
+        return reader.query("SELECT name FROM shop.products WHERE stock > 0", RESULT).stream()
+                .map(row -> row.get("name").toString())
+                .toList();
+    }
+}
+```
+
+The test seeds the emulator with the `BigQuery` bean, calls the repository, then checks the result:
+
+```java
+@SpringBootTest
+@Testcontainers
+class ProductRepositoryTest {
+
+    @Container
+    @ServiceConnection
+    static final BqkitBigQueryEmulatorContainer EMULATOR = new BqkitBigQueryEmulatorContainer();
+
+    private static final TableId PRODUCTS = TableId.of("shop", "products");
+
+    @Autowired
+    BigQuery bigQuery;
+
+    @Autowired
+    ProductRepository repository;
+
+    @Test
+    void finds_the_names_of_the_products_in_stock() {
+        // Given
+        bigQuery.create(DatasetInfo.of(PRODUCTS.getDataset()));
+        bigQuery.create(TableInfo.of(PRODUCTS, StandardTableDefinition.of(Schema.of(
+                Field.of("name", StandardSQLTypeName.STRING),
+                Field.of("stock", StandardSQLTypeName.INT64)))));
+        bigQuery.insertAll(InsertAllRequest.newBuilder(PRODUCTS)
+                .addRow(Map.of("name", "banana", "stock", 3))
+                .addRow(Map.of("name", "apple", "stock", 0))
+                .addRow(Map.of("name", "cherry", "stock", 12))
+                .build());
+
+        // When
+        List<String> names = repository.findNamesInStock();
+
+        // Then
+        assertThat(names).containsExactlyInAnyOrder("banana", "cherry");
+    }
+}
+```
+
+The emulator keeps its data for the lifetime of the container: with several tests in a class, give
+each its own dataset or destination table (see the limits below).
+
 ### Emulator limits
 
 - The emulator builds the Avro namespace from the project id, so a project id with a hyphen

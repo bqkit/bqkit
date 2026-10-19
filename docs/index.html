@@ -435,6 +435,64 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
     </svg>
   </figure>
   <p><code>BqkitBigQueryEmulatorContainer</code> runs <code>ghcr.io/goccy/bigquery-emulator:0.8.1</code> on project <code>testproject</code> and exposes the gRPC port of the Storage Read API.</p>
+  <h3>A complete test</h3>
+  <p>The application code queries through <code>QueryAvroReader</code>:</p>
+<pre data-lang="java"><code><span class="a">@Repository</span>
+<span class="k">public class</span> <span class="t">ProductRepository</span> {
+
+    <span class="k">private static final</span> <span class="t">TableId</span> RESULT = <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"products_in_stock"</span>);
+
+    <span class="k">private final</span> <span class="t">QueryAvroReader</span> reader;
+
+    <span class="k">public</span> <span class="t">ProductRepository</span>(<span class="t">QueryAvroReader</span> reader) {
+        <span class="k">this</span>.reader = reader;
+    }
+
+    <span class="k">public</span> <span class="t">List</span>&lt;<span class="t">String</span>&gt; findNamesInStock() {
+        <span class="k">return</span> reader.query(<span class="s">"SELECT name FROM shop.products WHERE stock &gt; 0"</span>, RESULT).stream()
+                .map(row -&gt; row.get(<span class="s">"name"</span>).toString())
+                .toList();
+    }
+}</code></pre>
+  <p>The test seeds the emulator with the <code>BigQuery</code> bean, calls the repository, then checks the result:</p>
+<pre data-lang="java"><code><span class="a">@SpringBootTest</span>
+<span class="a">@Testcontainers</span>
+<span class="k">class</span> <span class="t">ProductRepositoryTest</span> {
+
+    <span class="a">@Container</span>
+    <span class="a">@ServiceConnection</span>
+    <span class="k">static final</span> <span class="t">BqkitBigQueryEmulatorContainer</span> EMULATOR =
+            <span class="k">new</span> <span class="t">BqkitBigQueryEmulatorContainer</span>();
+
+    <span class="k">private static final</span> <span class="t">TableId</span> PRODUCTS = <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"products"</span>);
+
+    <span class="a">@Autowired</span>
+    <span class="t">BigQuery</span> bigQuery;
+
+    <span class="a">@Autowired</span>
+    <span class="t">ProductRepository</span> repository;
+
+    <span class="a">@Test</span>
+    <span class="k">void</span> finds_the_names_of_the_products_in_stock() {
+        <span class="c">// Given</span>
+        bigQuery.create(<span class="t">DatasetInfo</span>.of(PRODUCTS.getDataset()));
+        bigQuery.create(<span class="t">TableInfo</span>.of(PRODUCTS, <span class="t">StandardTableDefinition</span>.of(<span class="t">Schema</span>.of(
+                <span class="t">Field</span>.of(<span class="s">"name"</span>, <span class="t">StandardSQLTypeName</span>.STRING),
+                <span class="t">Field</span>.of(<span class="s">"stock"</span>, <span class="t">StandardSQLTypeName</span>.INT64)))));
+        bigQuery.insertAll(<span class="t">InsertAllRequest</span>.newBuilder(PRODUCTS)
+                .addRow(<span class="t">Map</span>.of(<span class="s">"name"</span>, <span class="s">"banana"</span>, <span class="s">"stock"</span>, 3))
+                .addRow(<span class="t">Map</span>.of(<span class="s">"name"</span>, <span class="s">"apple"</span>, <span class="s">"stock"</span>, 0))
+                .addRow(<span class="t">Map</span>.of(<span class="s">"name"</span>, <span class="s">"cherry"</span>, <span class="s">"stock"</span>, 12))
+                .build());
+
+        <span class="c">// When</span>
+        <span class="t">List</span>&lt;<span class="t">String</span>&gt; names = repository.findNamesInStock();
+
+        <span class="c">// Then</span>
+        assertThat(names).containsExactlyInAnyOrder(<span class="s">"banana"</span>, <span class="s">"cherry"</span>);
+    }
+}</code></pre>
+  <p>The emulator keeps its data for the lifetime of the container: with several tests in a class, give each its own dataset or destination table (see <a href="#emulator-limits">Emulator limits</a>).</p>
 </section>
 
 <section id="emulator-limits">

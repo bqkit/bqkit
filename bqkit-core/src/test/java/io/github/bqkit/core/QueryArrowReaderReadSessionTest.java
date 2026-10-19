@@ -3,8 +3,10 @@ package io.github.bqkit.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,14 +24,19 @@ import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
 import com.google.cloud.bigquery.storage.v1.ReadStream;
 import com.google.protobuf.ByteString;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.arrow.flatbuf.Message;
+import org.apache.arrow.memory.ArrowBuf;
 import org.apache.arrow.vector.VarCharVector;
+import org.apache.arrow.vector.ipc.message.MessageSerializer;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 
 class QueryArrowReaderReadSessionTest {
 
@@ -79,6 +86,45 @@ class QueryArrowReaderReadSessionTest {
     }
 
     @Test
+    void skips_the_schema_sent_before_the_record_batches() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        stream(schema, rows(ArrowMessages.schema(schema).concat(ArrowMessages.recordBatch(schema, "apple"))));
+        List<Integer> rowCounts = new ArrayList<>();
+
+        new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                batch -> rowCounts.add(batch.getRowCount()));
+
+        assertThat(rowCounts).containsExactly(1);
+    }
+
+    @Test
+    void releases_the_body_of_a_record_batch_that_fails_to_deserialize() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        stream(schema, rows(ArrowMessages.oversizedRecordBatch()));
+
+        assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                batch -> { }))
+                .isInstanceOf(UncheckedIOException.class)
+                .satisfies(failure -> assertThat(failure.getCause().getSuppressed()).isEmpty());
+    }
+
+    @Test
+    void releases_the_body_of_a_record_batch_when_deserializing_it_raises_an_error() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        stream(schema, rows(ArrowMessages.recordBatch(schema, "apple")));
+
+        try (MockedStatic<MessageSerializer> serializer = mockStatic(MessageSerializer.class, CALLS_REAL_METHODS)) {
+            serializer.when(() -> MessageSerializer.deserializeRecordBatch(any(Message.class), any(ArrowBuf.class)))
+                    .thenThrow(new OutOfMemoryError("no memory left"));
+
+            assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient)
+                    .readTable(TableId.of("shop", "products"), batch -> { }))
+                    .isInstanceOf(OutOfMemoryError.class)
+                    .satisfies(failure -> assertThat(failure.getSuppressed()).isEmpty());
+        }
+    }
+
+    @Test
     void cancels_the_stream_when_the_consumer_throws() {
         Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
         ServerStream<ReadRowsResponse> responses = stream(schema,
@@ -116,7 +162,8 @@ class QueryArrowReaderReadSessionTest {
         assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
                 batch -> { }))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("dictionary");
+                .hasMessageContaining("dictionary")
+                .satisfies(failure -> assertThat(failure.getSuppressed()).isEmpty());
     }
 
     @SuppressWarnings("unchecked")

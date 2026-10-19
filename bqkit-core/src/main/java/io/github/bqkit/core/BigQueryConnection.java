@@ -1,20 +1,93 @@
 package io.github.bqkit.core;
 
 import com.google.auth.Credentials;
+import com.google.cloud.NoCredentials;
 
 /**
- * Where and how to reach BigQuery.
- *
- * @param projectId    project that runs the jobs and owns the read sessions
- * @param restHost     REST host, {@code null} for the Google default endpoint
- * @param grpcEndpoint Storage Read API endpoint as {@code host:port}, {@code null} for the Google default endpoint
- * @param plaintext    gRPC without TLS, for an emulator
- * @param credentials  credentials shared by the REST and gRPC clients
+ * Where and how to reach BigQuery: the Google endpoints, or an emulator.
  */
-public record BigQueryConnection(
-        String projectId,
-        String restHost,
-        String grpcEndpoint,
-        boolean plaintext,
-        Credentials credentials) {
+public final class BigQueryConnection {
+
+    private final String projectId;
+    private final String restHost;
+    private final String grpcEndpoint;
+    private final boolean plaintext;
+    private final Credentials credentials;
+
+    private BigQueryConnection(
+            String projectId, String restHost, String grpcEndpoint, boolean plaintext, Credentials credentials) {
+        this.projectId = projectId;
+        this.restHost = restHost;
+        this.grpcEndpoint = grpcEndpoint;
+        this.plaintext = plaintext;
+        this.credentials = credentials;
+    }
+
+    /**
+     * Connection to the Google endpoints over TLS.
+     *
+     * @param projectId   project that runs the jobs and owns the read sessions
+     * @param credentials credentials shared by the REST and gRPC clients
+     * @return the connection
+     */
+    public static BigQueryConnection google(String projectId, Credentials credentials) {
+        return new BigQueryConnection(projectId, null, null, false, credentials);
+    }
+
+    /**
+     * Connection to an emulator, in plaintext and without credentials.
+     *
+     * @param projectId    project that runs the jobs and owns the read sessions
+     * @param restHost     REST host, such as {@code http://localhost:9050}
+     * @param grpcEndpoint Storage Read API endpoint as {@code host:port}
+     * @return the connection
+     */
+    public static BigQueryConnection emulator(String projectId, String restHost, String grpcEndpoint) {
+        return new BigQueryConnection(projectId, restHost, grpcEndpoint, true, NoCredentials.getInstance());
+    }
+
+    /**
+     * Project that runs the jobs and owns the read sessions.
+     *
+     * @return the project id
+     */
+    public String projectId() {
+        return projectId;
+    }
+
+    /**
+     * REST host.
+     *
+     * @return the host, {@code null} for the Google default endpoint
+     */
+    public String restHost() {
+        return restHost;
+    }
+
+    /**
+     * Storage Read API endpoint as {@code host:port}.
+     *
+     * @return the endpoint, {@code null} for the Google default endpoint
+     */
+    public String grpcEndpoint() {
+        return grpcEndpoint;
+    }
+
+    /**
+     * Whether gRPC runs without TLS, for an emulator.
+     *
+     * @return {@code true} for an emulator
+     */
+    public boolean plaintext() {
+        return plaintext;
+    }
+
+    /**
+     * Credentials shared by the REST and gRPC clients.
+     *
+     * @return the credentials
+     */
+    public Credentials credentials() {
+        return credentials;
+    }
 }

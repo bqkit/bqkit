@@ -3,7 +3,6 @@ package io.github.bqkit.autoconfigure;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.google.cloud.NoCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import io.github.bqkit.core.BigQueryConnection;
@@ -15,8 +14,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class BqkitAutoConfigurationTest {
 
-    private static final BigQueryConnectionDetails EMULATOR_DETAILS = () -> new BigQueryConnection(
-            "testproject", "http://localhost:9050", "localhost:9060", true, NoCredentials.getInstance());
+    private static final BigQueryConnectionDetails EMULATOR_DETAILS = () -> BigQueryConnection.emulator(
+            "testproject", "http://localhost:9050", "localhost:9060");
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(BqkitAutoConfiguration.class));

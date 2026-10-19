@@ -1,6 +1,5 @@
 package io.github.bqkit.test;
 
-import com.google.cloud.NoCredentials;
 import io.github.bqkit.autoconfigure.BigQueryConnectionDetails;
 import io.github.bqkit.core.BigQueryConnection;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionDetailsFactory;
@@ -31,12 +30,10 @@ class BigQueryEmulatorContainerConnectionDetailsFactory
         @Override
         public BigQueryConnection connection() {
             BigQueryEmulatorContainer container = getContainer();
-            return new BigQueryConnection(
+            return BigQueryConnection.emulator(
                     container.getProjectId(),
                     container.getEmulatorHttpEndpoint(),
-                    container.getHost() + ":" + container.getMappedPort(BqkitBigQueryEmulatorContainer.GRPC_PORT),
-                    true,
-                    NoCredentials.getInstance());
+                    container.getHost() + ":" + container.getMappedPort(BqkitBigQueryEmulatorContainer.GRPC_PORT));
         }
     }
 }

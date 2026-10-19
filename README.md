@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo-bq.png" alt="bqkit" width="128">
+</p>
+
 # bqkit
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.bqkit/bqkit-spring-boot-starter)](https://central.sonatype.com/namespace/io.github.bqkit)

@@ -656,7 +656,7 @@
         <path class="arrow flow" d="M532 164 C 570 164, 580 134, 620 134"/>
       </svg>
     </figure>
-    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>ghcr.io/goccy/bigquery-emulator:0.8.1</code> on project <code>testproject</code> and exposes the gRPC port of the Storage Read API.</p></div>
+    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>ghcr.io/goccy/bigquery-emulator:0.8.1</code> on project <code>testproject</code> and exposes the gRPC port of the Storage Read API. <code>@ServiceConnection</code> only accepts this container: the Testcontainers <code>BigQueryEmulatorContainer</code> does not expose the gRPC port.</p></div>
 
     <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">A complete test</h3>
     <div class="prose"><p>The application code queries through <code>QueryAvroReader</code>:</p></div>

@@ -4,11 +4,12 @@ import io.github.bqkit.autoconfigure.BigQueryConnectionDetails;
 import io.github.bqkit.core.BigQueryConnection;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionDetailsFactory;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionSource;
-import org.testcontainers.containers.BigQueryEmulatorContainer;
 
-/** Lets {@code @ServiceConnection} point the REST and Storage Read clients at a BigQuery emulator container. */
+/**
+ * Lets {@code @ServiceConnection} point the REST and Storage Read clients at a {@link BqkitBigQueryEmulatorContainer}.
+ */
 class BigQueryEmulatorContainerConnectionDetailsFactory
-        extends ContainerConnectionDetailsFactory<BigQueryEmulatorContainer, BigQueryConnectionDetails> {
+        extends ContainerConnectionDetailsFactory<BqkitBigQueryEmulatorContainer, BigQueryConnectionDetails> {
 
     BigQueryEmulatorContainerConnectionDetailsFactory() {
         super(ANY_CONNECTION_NAME, "com.google.cloud.bigquery.BigQuery");
@@ -16,20 +17,20 @@ class BigQueryEmulatorContainerConnectionDetailsFactory
 
     @Override
     protected BigQueryConnectionDetails getContainerConnectionDetails(
-            ContainerConnectionSource<BigQueryEmulatorContainer> source) {
+            ContainerConnectionSource<BqkitBigQueryEmulatorContainer> source) {
         return new EmulatorConnectionDetails(source);
     }
 
     private static final class EmulatorConnectionDetails
-            extends ContainerConnectionDetails<BigQueryEmulatorContainer> implements BigQueryConnectionDetails {
+            extends ContainerConnectionDetails<BqkitBigQueryEmulatorContainer> implements BigQueryConnectionDetails {
 
-        private EmulatorConnectionDetails(ContainerConnectionSource<BigQueryEmulatorContainer> source) {
+        private EmulatorConnectionDetails(ContainerConnectionSource<BqkitBigQueryEmulatorContainer> source) {
             super(source);
         }
 
         @Override
         public BigQueryConnection connection() {
-            BigQueryEmulatorContainer container = getContainer();
+            BqkitBigQueryEmulatorContainer container = getContainer();
             return BigQueryConnection.emulator(
                     container.getProjectId(),
                     container.getEmulatorHttpEndpoint(),

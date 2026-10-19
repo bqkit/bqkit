@@ -18,8 +18,12 @@ public final class CredentialsFactory {
     }
 
     public static Credentials create(String impersonateServiceAccount) {
+        return create(GoogleCredentials::getApplicationDefault, impersonateServiceAccount);
+    }
+
+    static Credentials create(Loader loader, String impersonateServiceAccount) {
         try {
-            return create(GoogleCredentials.getApplicationDefault(), impersonateServiceAccount);
+            return create(loader.load(), impersonateServiceAccount);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -31,5 +35,10 @@ public final class CredentialsFactory {
             return scoped;
         }
         return ImpersonatedCredentials.create(scoped, impersonateServiceAccount, null, SCOPES, LIFETIME_SECONDS);
+    }
+
+    @FunctionalInterface
+    interface Loader {
+        GoogleCredentials load() throws IOException;
     }
 }

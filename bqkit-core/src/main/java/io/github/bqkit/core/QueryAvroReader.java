@@ -17,7 +17,6 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.apache.avro.NameValidator;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
@@ -77,7 +76,7 @@ public class QueryAvroReader {
                         .setDataFormat(DataFormat.AVRO))
                 .setMaxStreamCount(1)
                 .build());
-        Schema schema = new Schema.Parser(NameValidator.NO_VALIDATION).parse(session.getAvroSchema().getSchema());
+        Schema schema = new Schema.Parser().parse(session.getAvroSchema().getSchema());
         GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema);
         List<GenericRecord> records = new ArrayList<>();
         for (ReadStream stream : session.getStreamsList()) {

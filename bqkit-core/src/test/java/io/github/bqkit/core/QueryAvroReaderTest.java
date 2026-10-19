@@ -1,8 +1,16 @@
 package io.github.bqkit.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.Job;
+import com.google.cloud.bigquery.JobInfo;
+import com.google.cloud.bigquery.JobStatus;
+import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import java.util.List;
@@ -21,13 +29,14 @@ class QueryAvroReaderTest {
     @Container
     static final BigQueryEmulatorContainer EMULATOR = Emulator.container();
 
+    static BigQuery bigQuery;
     static BigQueryReadClient readClient;
     static QueryAvroReader reader;
 
     @BeforeAll
     static void setUp() {
         BigQueryConnection connection = Emulator.connection(EMULATOR);
-        BigQuery bigQuery = BigQueryClients.bigQuery(connection);
+        bigQuery = BigQueryClients.bigQuery(connection);
         readClient = BigQueryClients.readClient(connection);
         reader = new QueryAvroReader(bigQuery, readClient);
         Emulator.seed(bigQuery);
@@ -64,5 +73,23 @@ class QueryAvroReaderTest {
 
         assertThat(rows).extracting(r -> r.get("name").toString())
                 .containsExactlyInAnyOrder("banana", "cherry");
+    }
+
+    @Test
+    void runs_a_query_without_destination_then_reads_the_rows_the_job_wrote() throws InterruptedException {
+        BigQuery jobRunner = mock(BigQuery.class);
+        Job job = mock(Job.class);
+        Job completed = mock(Job.class);
+        when(jobRunner.getOptions()).thenReturn(bigQuery.getOptions());
+        when(jobRunner.create(any(JobInfo.class))).thenReturn(job);
+        when(job.waitFor()).thenReturn(completed);
+        when(completed.getStatus()).thenReturn(mock(JobStatus.class));
+        doReturn(QueryJobConfiguration.newBuilder("SELECT 1").setDestinationTable(Emulator.PRODUCTS).build())
+                .when(completed).getConfiguration();
+
+        List<GenericRecord> rows = new QueryAvroReader(jobRunner, readClient).query("SELECT 1");
+
+        assertThat(rows).extracting(r -> r.get("name").toString())
+                .containsExactlyInAnyOrder("apple", "banana", "cherry");
     }
 }

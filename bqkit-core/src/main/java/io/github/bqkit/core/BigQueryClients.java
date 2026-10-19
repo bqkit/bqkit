@@ -21,13 +21,12 @@ public final class BigQueryClients {
     }
 
     public static BigQuery bigQuery(BigQueryConnection connection) {
-        BigQueryOptions.Builder options = BigQueryOptions.newBuilder()
+        return BigQueryOptions.newBuilder()
                 .setProjectId(connection.projectId())
-                .setCredentials(connection.credentials());
-        if (Objects.nonNull(connection.restHost())) {
-            options.setHost(connection.restHost()).setLocation(connection.restHost());
-        }
-        return options.build().getService();
+                .setCredentials(connection.credentials())
+                .setHost(connection.restHost())
+                .build()
+                .getService();
     }
 
     public static BigQueryReadClient readClient(BigQueryConnection connection) {

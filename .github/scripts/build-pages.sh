@@ -14,6 +14,8 @@ majors=$(git for-each-ref --format='%(refname:lstrip=4)' 'refs/remotes/origin/re
 for major in $majors; do
   mkdir -p "$out/$major"
   git archive "origin/release/$major" docs | tar -x -C "$out/$major" --strip-components=1
+  page="$out/$major/index.html"
+  sed "s/@MAJOR@/$major/g" "$page" > "$page.tmp" && mv "$page.tmp" "$page"
 done
 
 latest=$(echo "$majors" | tail -n 1)

@@ -314,7 +314,7 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
 
 <section id="usage">
   <h2><span class="dot" style="background:var(--green)"></span>Usage</h2>
-  <p class="note">bqkit is not released yet: build it locally with <code>mvn install</code> to use <code class="bqkit-version"></code>.</p>
+  <p class="note" id="unreleased">bqkit is not released yet: build it locally with <code>mvn install</code>.</p>
   <p>Each major version of bqkit targets one Spring Boot generation:</p>
   <ul>
     <li>bqkit 1.0.x: Spring Boot 3.5, Java 21. This line only receives fixes.</li>
@@ -326,7 +326,7 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
 <pre data-lang="xml"><code><span class="t">&lt;dependency&gt;</span>
     <span class="t">&lt;groupId&gt;</span>io.github.bqkit<span class="t">&lt;/groupId&gt;</span>
     <span class="t">&lt;artifactId&gt;</span>bqkit-spring-boot-starter<span class="t">&lt;/artifactId&gt;</span>
-    <span class="t">&lt;version&gt;</span><span class="bqkit-version"></span><span class="t">&lt;/version&gt;</span>
+    <span class="t">&lt;version&gt;</span><span class="bqkit-version">${bqkit.version}</span><span class="t">&lt;/version&gt;</span>
 <span class="t">&lt;/dependency&gt;</span></code></pre>
     </div>
     <div>
@@ -387,7 +387,7 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
 <pre data-lang="xml"><code><span class="t">&lt;dependency&gt;</span>
     <span class="t">&lt;groupId&gt;</span>io.github.bqkit<span class="t">&lt;/groupId&gt;</span>
     <span class="t">&lt;artifactId&gt;</span>bqkit-test<span class="t">&lt;/artifactId&gt;</span>
-    <span class="t">&lt;version&gt;</span><span class="bqkit-version"></span><span class="t">&lt;/version&gt;</span>
+    <span class="t">&lt;version&gt;</span><span class="bqkit-version">${bqkit.version}</span><span class="t">&lt;/version&gt;</span>
     <span class="t">&lt;scope&gt;</span>test<span class="t">&lt;/scope&gt;</span>
 <span class="t">&lt;/dependency&gt;</span></code></pre>
     </div>
@@ -509,8 +509,22 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
 </footer>
 
 <script>
-const BQKIT_VERSION = "1.0.0-SNAPSHOT";
-document.querySelectorAll(".bqkit-version").forEach(el => { el.textContent = BQKIT_VERSION; });
+fetch("https://api.github.com/repos/bqkit/bqkit/tags?per_page=100")
+  .then(response => response.ok ? response.json() : [])
+  .then(tags => {
+    const versions = tags
+      .map(tag => tag.name)
+      .filter(name => /^v\d+\.\d+\.\d+$/.test(name))
+      .map(name => name.slice(1).split(".").map(Number))
+      .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+    if (versions.length === 0) {
+      return;
+    }
+    const latest = versions[versions.length - 1].join(".");
+    document.querySelectorAll(".bqkit-version").forEach(el => { el.textContent = latest; });
+    document.getElementById("unreleased").hidden = true;
+  })
+  .catch(() => {});
 </script>
 </body>
 </html>

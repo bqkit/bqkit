@@ -6,7 +6,12 @@ Spring Boot integration for Google BigQuery, built around the Storage Read API:
 - optional service account impersonation on top of the Application Default Credentials;
 - a `@ServiceConnection` for the [BigQuery emulator](https://github.com/goccy/bigquery-emulator) with Testcontainers.
 
-Requires Java 21 and Spring Boot 3.5.
+## Compatibility
+
+Each major version of bqkit targets one Spring Boot generation:
+
+- bqkit 1.0.x: Spring Boot 3.5, Java 21. This line only receives fixes.
+- bqkit 2.x: Spring Boot 4 (planned).
 
 ## Modules
 
@@ -20,7 +25,7 @@ Requires Java 21 and Spring Boot 3.5.
 <dependency>
     <groupId>io.github.bqkit</groupId>
     <artifactId>bqkit-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -49,7 +54,7 @@ bean replaces the connection built from the properties.
 <dependency>
     <groupId>io.github.bqkit</groupId>
     <artifactId>bqkit-test</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 ```

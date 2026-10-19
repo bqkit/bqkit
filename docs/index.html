@@ -315,6 +315,11 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
 <section id="usage">
   <h2><span class="dot" style="background:var(--green)"></span>Usage</h2>
   <p class="note">bqkit is not released yet: build it locally with <code>mvn install</code> to use <code class="bqkit-version"></code>.</p>
+  <p>Each major version of bqkit targets one Spring Boot generation:</p>
+  <ul>
+    <li>bqkit 1.0.x: Spring Boot 3.5, Java 21. This line only receives fixes.</li>
+    <li>bqkit 2.x: Spring Boot 4 (planned).</li>
+  </ul>
   <div class="two">
     <div>
       <h3>1. Add the starter</h3>
@@ -504,7 +509,7 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
 </footer>
 
 <script>
-const BQKIT_VERSION = "0.1.0-SNAPSHOT";
+const BQKIT_VERSION = "1.0.0-SNAPSHOT";
 document.querySelectorAll(".bqkit-version").forEach(el => { el.textContent = BQKIT_VERSION; });
 </script>
 </body>

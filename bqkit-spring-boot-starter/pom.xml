@@ -9,7 +9,7 @@
     <parent>
         <groupId>io.github.bqkit</groupId>
         <artifactId>bqkit-parent</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>bqkit-spring-boot-starter</artifactId>

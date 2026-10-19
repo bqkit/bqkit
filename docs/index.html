@@ -5,394 +5,523 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>bqkit</title>
 <meta name="description" content="Spring Boot integration for Google BigQuery, built around the Storage Read API, with a @ServiceConnection for the BigQuery emulator.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #f7f8fc;
-  --surface: #ffffff;
-  --fg: #1b1f3b;
-  --muted: #5b6283;
-  --border: #e1e4f0;
-  --code-bg: #12142b;
-  --code-fg: #e4e7ff;
-  --blue: #4285f4;
-  --indigo: #6d5dfc;
-  --teal: #12b5cb;
-  --green: #1e9e57;
-  --orange: #f29900;
-  --red: #e5483b;
-  --blue-soft: #e8f0fe;
-  --indigo-soft: #eeebff;
-  --teal-soft: #e0f7fa;
-  --green-soft: #e3f5ea;
-  --orange-soft: #fff3db;
-  --red-soft: #fde9e7;
-  --shadow: 0 6px 24px rgba(27, 31, 59, .08);
-}
-@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0c0e1d;
-    --surface: #15182d;
-    --fg: #e8eaff;
-    --muted: #9da3c7;
-    --border: #2a2e4c;
-    --code-bg: #090a16;
-    --code-fg: #e4e7ff;
-    --blue: #7aa7ff;
-    --indigo: #9b8fff;
-    --teal: #4dd4e6;
-    --green: #4cc785;
-    --orange: #ffb938;
-    --red: #ff7a6e;
-    --blue-soft: #18264a;
-    --indigo-soft: #221d4d;
-    --teal-soft: #0f3038;
-    --green-soft: #12301f;
-    --orange-soft: #3a2a0a;
-    --red-soft: #3d1714;
-    --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --surface-2: #eceff4;
+    --ink: #0f141b;
+    --muted: #5a6472;
+    --line: #e1e6ec;
+    --accent: #0ea5e9;
+    --accent-ink: #0369a1;
+    --ok: #138a5e;
+    --warn: #b4790b;
+    --err: #c2410c;
+    --code-bg: #0d1017;
+    --code-ink: #e6e9ef;
+    --code-line: #1e2530;
+    --shadow: 0 1px 2px rgba(15,20,27,.06), 0 10px 30px -12px rgba(15,20,27,.14);
+    --radius: 14px;
+    --maxw: 1080px;
+    --display: "Archivo", system-ui, sans-serif;
+    --body: "IBM Plex Sans", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   }
-}
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-a { color: var(--indigo); }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em; background: var(--indigo-soft); color: var(--fg); padding: .12em .4em; border-radius: 5px; }
-pre { background: var(--code-bg); color: var(--code-fg); border-radius: 12px; padding: 18px 20px; overflow-x: auto; line-height: 1.5; box-shadow: var(--shadow); margin: 14px 0; position: relative; }
-pre code { background: none; color: inherit; padding: 0; font-size: .86rem; }
-pre[data-lang]::before { content: attr(data-lang); position: absolute; top: 8px; right: 12px; font: 600 .7rem/1 ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: #8b90c4; }
-.k { color: #ff8bd0; }
-.s { color: #9ef0a8; }
-.t { color: #7cc4ff; }
-.a { color: #ffd479; }
-.c { color: #7d83b0; font-style: italic; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0d12;
+      --surface: #11161e;
+      --surface-2: #171e28;
+      --ink: #eceff3;
+      --muted: #94a1b2;
+      --line: #212a35;
+      --accent: #38bdf8;
+      --accent-ink: #7dd3fc;
+      --ok: #35c892;
+      --warn: #e8b14b;
+      --err: #fb8a5c;
+      --code-bg: #0c1016;
+      --code-ink: #e6e9ef;
+      --code-line: #1c2531;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 44px -18px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0d12;
+    --surface: #11161e;
+    --surface-2: #171e28;
+    --ink: #eceff3;
+    --muted: #94a1b2;
+    --line: #212a35;
+    --accent: #38bdf8;
+    --accent-ink: #7dd3fc;
+    --ok: #35c892;
+    --warn: #e8b14b;
+    --err: #fb8a5c;
+    --code-bg: #0c1016;
+    --code-ink: #e6e9ef;
+    --code-line: #1c2531;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 44px -18px rgba(0,0,0,.6);
+  }
 
-.hero {
-  background: radial-gradient(1200px 400px at 10% -10%, rgba(255,255,255,.18), transparent),
-              linear-gradient(135deg, #4285f4 0%, #6d5dfc 55%, #12b5cb 100%);
-  color: #fff;
-  padding: 56px 16px 72px;
-}
-.hero-inner { max-width: 1000px; margin: 0 auto; }
-.logo { display: inline-flex; align-items: center; gap: 14px; }
-.logo h1 { font-size: 3rem; margin: 0; letter-spacing: -.02em; }
-.tagline { font-size: 1.25rem; max-width: 640px; margin: 16px 0 28px; opacity: .95; }
-.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
-.badge { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); border-radius: 999px; padding: 4px 12px; font-size: .85rem; font-weight: 600; }
-.cta { display: flex; flex-wrap: wrap; gap: 12px; }
-.btn { display: inline-block; padding: 10px 20px; border-radius: 10px; font-weight: 600; text-decoration: none; }
-.btn-primary { background: #fff; color: #3b2fd0; }
-.btn-ghost { border: 1.5px solid rgba(255,255,255,.7); color: #fff; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  a { color: var(--accent-ink); text-decoration: none; font-weight: 500; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 600px) { .wrap { padding: 0 16px; } }
+  h1, h2, h3 { font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; text-wrap: balance; margin: 0; }
+  h3 { font-weight: 700; font-size: 18px; margin: 30px 0 10px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12.5px; font-weight: 500;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--accent-ink);
+  }
+  .muted { color: var(--muted); }
+  p code, li code, .mod span code, .g code, h3 code {
+    font-family: var(--mono); font-size: .86em; background: var(--surface-2);
+    border: 1px solid var(--line); padding: .05em .35em; border-radius: 6px; overflow-wrap: anywhere;
+  }
 
-nav.toc { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
-nav.toc .inner { max-width: 1000px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 6px 20px; flex-wrap: wrap; font-size: .92rem; font-weight: 600; }
-nav.toc a { color: var(--muted); text-decoration: none; }
-nav.toc a:hover { color: var(--indigo); }
+  /* ---- top bar ---- */
+  header.bar {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar .wrap { display: flex; align-items: center; gap: 16px; height: 62px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; letter-spacing: -.02em; font-size: 18px; color: var(--ink); }
+  .brand:hover { text-decoration: none; }
+  .brand svg { width: 26px; height: 26px; display: block; }
+  .bar nav { margin-left: auto; display: flex; align-items: center; gap: 22px; }
+  .bar nav a.nl { font-size: 14.5px; color: var(--muted); font-weight: 500; }
+  .bar nav a.nl:hover { color: var(--ink); text-decoration: none; }
+  .ghbtn { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink);
+    border: 1px solid var(--line); background: var(--surface); padding: 7px 13px; border-radius: 9px; }
+  .ghbtn:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); text-decoration: none; }
+  .themebtn { background: var(--surface); border: 1px solid var(--line); color: var(--muted);
+    width: 36px; height: 34px; border-radius: 9px; cursor: pointer; font-size: 15px; display: grid; place-items: center; }
+  .themebtn:hover { color: var(--ink); }
+  @media (max-width: 860px) { .bar nav a.nl { display: none; } }
 
-main { max-width: 1000px; margin: 0 auto; padding: 8px 16px 64px; }
-section { margin-top: 56px; }
-h2 { font-size: 1.75rem; margin: 0 0 6px; letter-spacing: -.01em; }
-h2 .dot { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 10px; vertical-align: middle; }
-.lead { color: var(--muted); margin: 0 0 22px; font-size: 1.05rem; }
-h3 { margin: 28px 0 8px; }
+  /* ---- hero ---- */
+  .hero { padding: 68px 0 20px; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(60% 50% at 78% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+      linear-gradient(to bottom, var(--surface-2), transparent 40%);
+    opacity: .7;
+  }
+  .hero .wrap { position: relative; z-index: 1; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
+  .hero-grid > * { min-width: 0; }
+  @media (max-width: 920px) { .hero-grid { grid-template-columns: 1fr; gap: 34px; } }
+  h1.title { font-size: clamp(40px, 6vw, 64px); }
+  .lede { font-size: clamp(18px, 2.2vw, 21px); color: var(--muted); margin: 22px 0 0; max-width: 38ch; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+  .pill { font-family: var(--mono); font-size: 12.5px; font-weight: 500; color: var(--muted);
+    border: 1px solid var(--line); background: var(--surface); padding: 5px 11px; border-radius: 999px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .btn { display: inline-flex; align-items: center; gap: 9px; font-weight: 600; font-size: 15.5px;
+    padding: 12px 20px; border-radius: 11px; border: 1px solid transparent; cursor: pointer;
+    transition: transform .15s ease, filter .15s ease, border-color .15s ease; }
+  .btn:hover { text-decoration: none; }
+  .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--accent) 70%, transparent); }
+  .btn.primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+  .btn.ghost { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .btn.ghost:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); border-top: 4px solid var(--accent, var(--indigo)); }
-.card h3 { margin: 10px 0 6px; font-size: 1.1rem; }
-.card p { margin: 0; color: var(--muted); font-size: .95rem; }
-.icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--soft, var(--indigo-soft)); }
-.icon svg { width: 22px; height: 22px; stroke: var(--accent, var(--indigo)); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.c-blue { --accent: var(--blue); --soft: var(--blue-soft); }
-.c-indigo { --accent: var(--indigo); --soft: var(--indigo-soft); }
-.c-teal { --accent: var(--teal); --soft: var(--teal-soft); }
-.c-green { --accent: var(--green); --soft: var(--green-soft); }
-.c-orange { --accent: var(--orange); --soft: var(--orange-soft); }
-.c-red { --accent: var(--red); --soft: var(--red-soft); }
+  /* ---- sections ---- */
+  section { padding: 56px 0; }
+  .sec-head { max-width: 62ch; margin-bottom: 30px; }
+  .sec-head h2 { font-size: clamp(26px, 3.4vw, 36px); margin-top: 10px; }
+  .sec-head p { color: var(--muted); margin: 12px 0 0; font-size: 17px; }
+  .band { background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 
-figure { margin: 18px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
-figure svg { width: 100%; height: auto; display: block; }
-figcaption { color: var(--muted); font-size: .88rem; text-align: center; margin-top: 10px; }
+  .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 960px) { .features { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 580px) { .features { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; min-width: 0; }
+  .card .ic { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent-ink); margin-bottom: 13px; }
+  .card .ic svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .card h3 { font-size: 17.5px; margin: 0; }
+  .card p { margin: 7px 0 0; font-size: 14.6px; color: var(--muted); line-height: 1.55; }
 
-svg .box { stroke-width: 2; rx: 12; }
-svg .lbl { font: 600 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: var(--fg); }
-svg .sub { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; fill: var(--muted); }
-svg .edge { font: 600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: var(--muted); }
-svg .arrow { stroke: var(--muted); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
-svg .dash { stroke-dasharray: 6 5; }
-svg .f-blue { fill: var(--blue-soft); stroke: var(--blue); }
-svg .f-indigo { fill: var(--indigo-soft); stroke: var(--indigo); }
-svg .f-teal { fill: var(--teal-soft); stroke: var(--teal); }
-svg .f-green { fill: var(--green-soft); stroke: var(--green); }
-svg .f-orange { fill: var(--orange-soft); stroke: var(--orange); }
-svg .f-red { fill: var(--red-soft); stroke: var(--red); }
-svg .zone { fill: none; stroke: var(--border); stroke-width: 2; stroke-dasharray: 4 4; }
-svg .zlbl { font: 700 11px -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: .1em; fill: var(--muted); }
-svg .num { font: 700 13px -apple-system, BlinkMacSystemFont, sans-serif; fill: #fff; }
-svg .row { stroke-width: 1.5; }
+  /* ---- diagrams ---- */
+  .diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    box-shadow: var(--shadow); padding: 20px 20px 14px; margin: 0; }
+  .diagram + .diagram, .code + .diagram, .diagram + .code { margin-top: 20px; }
+  .diagram svg { width: 100%; height: auto; display: block; }
+  .diagram figcaption { font-family: var(--mono); font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 10px; }
+  svg .box { stroke-width: 1.5; }
+  svg .lbl { font: 600 15px var(--mono); fill: var(--ink); }
+  svg .sub { font: 500 12px var(--mono); fill: var(--muted); }
+  svg .edge { font: 500 12px var(--mono); fill: var(--muted); }
+  svg .arrow { stroke: var(--muted); stroke-width: 1.8; fill: none; marker-end: url(#arrowhead); }
+  svg .dash { stroke-dasharray: 5 6; }
+  svg .flow { stroke: var(--accent); stroke-dasharray: 5 6; animation: dash 1.1s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -22; } }
+  @media (prefers-reduced-motion: reduce) { svg .flow { animation: none; } }
+  svg .f-node { fill: var(--surface-2); stroke: var(--line); }
+  svg .f-accent { fill: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); stroke: var(--accent); }
+  svg .f-ok { fill: color-mix(in srgb, var(--ok) 14%, var(--surface-2)); stroke: var(--ok); }
+  svg .f-warn { fill: color-mix(in srgb, var(--warn) 14%, var(--surface-2)); stroke: var(--warn); }
+  svg .f-err { fill: color-mix(in srgb, var(--err) 14%, var(--surface-2)); stroke: var(--err); }
+  svg .zone { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 2 5; }
+  svg .zlbl { font: 500 11px var(--mono); letter-spacing: .14em; fill: var(--muted); }
+  svg .num { font: 600 12px var(--mono); fill: #fff; }
+  svg .row { stroke-width: 1.2; }
 
-.methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-top: 16px; }
-.method { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 14px 16px; }
-.method code { background: var(--soft); }
-.method p { margin: 6px 0 0; color: var(--muted); font-size: .93rem; }
+  /* ---- code ---- */
+  .code-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .code-grid > * { min-width: 0; }
+  @media (max-width: 820px) { .code-grid { grid-template-columns: 1fr; } }
+  .code { background: var(--code-bg); border: 1px solid var(--code-line); border-radius: var(--radius); overflow: hidden; margin: 0; }
+  .code-grid + .code, .code + .code, .code + p, p + .code { margin-top: 20px; }
+  .code-grid > .code { margin-top: 0; }
+  .code .ct { display: flex; align-items: center; gap: 8px; padding: 11px 15px; border-bottom: 1px solid var(--code-line);
+    font-family: var(--mono); font-size: 12.5px; color: #8b97a7; }
+  .code .ct .tag { color: var(--accent); }
+  .code .ct .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code .ct .dot.a { background: #ff5f56; } .code .ct .dot.b { background: #ffbd2e; } .code .ct .dot.c { background: #27c93f; }
+  .code pre { margin: 0; padding: 16px 18px; overflow-x: auto; }
+  .code code { font-family: var(--mono); font-size: 13.2px; color: var(--code-ink); line-height: 1.65; white-space: pre; }
+  .code .k, .code .t, .code .a { color: #7dd3fc; }
+  .code .s { color: #6ad3a6; }
+  .code .c { color: #6b7686; }
+  .copy { margin-left: auto; background: transparent; border: 1px solid var(--code-line); color: #8b97a7;
+    font-family: var(--mono); font-size: 11.5px; padding: 3px 9px; border-radius: 7px; cursor: pointer; }
+  .copy:hover { color: #fff; border-color: #3a4656; }
 
-.limits { display: grid; gap: 14px; }
-.limit { display: grid; grid-template-columns: 44px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); }
-.limit .icon { width: 44px; height: 44px; }
-.limit h3 { margin: 0 0 4px; font-size: 1.02rem; }
-.limit p { margin: 0; color: var(--muted); font-size: .95rem; }
-.fix { display: inline-block; margin-top: 8px; font-size: .88rem; font-weight: 600; color: var(--green); }
-.callout { margin-top: 18px; background: var(--green-soft); border: 1px solid var(--green); border-radius: 12px; padding: 12px 16px; font-weight: 600; }
-.note { background: var(--orange-soft); border: 1px solid var(--orange); border-radius: 12px; padding: 12px 16px; margin: 0 0 16px; }
+  /* ---- notes, lists ---- */
+  .note { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 13px 16px; margin: 0 0 22px; font-size: 15px; }
+  .note[hidden] { display: none; }
+  .tagk { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    border: 1px solid; border-radius: 6px; padding: 3px 7px; white-space: nowrap; margin-top: 1px; }
+  .tagk.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+  .tagk.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .tagk.err { color: var(--err); border-color: color-mix(in srgb, var(--err) 40%, transparent); }
+  .versions { margin: 0 0 26px; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .versions li { font-size: 15.5px; }
+  .versions li::before { content: "→"; color: var(--accent-ink); font-family: var(--mono); margin-right: 10px; }
+  .prose { max-width: 72ch; }
+  .prose p { margin: 18px 0 0; }
 
-.two { display: grid; gap: 0 16px; }
-.two > *, .limit > div, .card, .method { min-width: 0; }
-p code, li code, .method code, .limit code { overflow-wrap: anywhere; }
+  .mods { display: grid; gap: 10px; margin-top: 20px; }
+  .mod { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: baseline;
+    padding: 14px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  .mod > * { min-width: 0; }
+  @media (max-width: 680px) { .mod { grid-template-columns: 1fr; gap: 4px; } }
+  .mod > code { font-family: var(--mono); font-size: 13.5px; color: var(--accent-ink); font-weight: 500; overflow-wrap: anywhere; }
+  .mod span { color: var(--muted); font-size: 14.5px; }
 
-footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--border); }
-@media (max-width: 600px) {
-  .logo h1 { font-size: 2.3rem; }
-  .tagline { font-size: 1.08rem; }
-  h2 { font-size: 1.45rem; }
-}
+  .guar { display: grid; gap: 12px; }
+  .guar .g { display: flex; gap: 13px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 16px; }
+  .guar .g > div { min-width: 0; }
+  .guar .g p { margin: 0; font-size: 14.8px; }
+  .guar .g p + p { margin-top: 6px; color: var(--muted); font-size: 14px; }
+  .guar .g strong { font-weight: 600; }
+
+  /* ---- final, footer ---- */
+  .final { text-align: center; padding: 70px 0; }
+  .final h2 { font-size: clamp(28px, 4vw, 42px); }
+  .final p { color: var(--muted); max-width: 52ch; margin: 14px auto 0; }
+
+  footer { border-top: 1px solid var(--line); padding: 30px 0 50px; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 26px; align-items: center; }
+  footer a { color: var(--muted); font-weight: 400; } footer a:hover { color: var(--ink); }
+  footer .sp { margin-left: auto; }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
 </style>
 </head>
 <body>
 
-<header class="hero">
-  <div class="hero-inner">
-    <div class="logo">
-      <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
-        <rect width="56" height="56" rx="14" fill="#fff" fill-opacity=".2"/>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 56 56" aria-hidden="true">
+        <rect width="56" height="56" rx="13" fill="var(--accent)"/>
         <circle cx="25" cy="25" r="12" fill="none" stroke="#fff" stroke-width="4"/>
         <line x1="34" y1="34" x2="44" y2="44" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
         <rect x="19" y="25" width="3.5" height="6" rx="1" fill="#fff"/>
         <rect x="23.5" y="20" width="3.5" height="11" rx="1" fill="#fff"/>
         <rect x="28" y="22.5" width="3.5" height="8.5" rx="1" fill="#fff"/>
       </svg>
-      <h1>bqkit</h1>
-    </div>
-    <p class="tagline">Spring Boot integration for Google BigQuery, built around the Storage Read API, with an emulator you can test against.</p>
-    <div class="badges">
-      <span class="badge">Java 21</span>
-      <span class="badge">Spring Boot 3.5</span>
-      <span class="badge">Storage Read API · Avro</span>
-      <span class="badge">Testcontainers</span>
-      <span class="badge">Apache 2.0</span>
-    </div>
-    <div class="cta">
-      <a class="btn btn-primary" href="#usage">Get started</a>
-      <a class="btn btn-ghost" href="https://github.com/bqkit/bqkit">View on GitHub</a>
-    </div>
+      bqkit
+    </a>
+    <nav aria-label="Sections">
+      <a class="nl" href="#why">Why</a>
+      <a class="nl" href="#read-path">Read path</a>
+      <a class="nl" href="#usage">Usage</a>
+      <a class="nl" href="#testing">Testing</a>
+      <a class="nl" href="#emulator-limits">Limits</a>
+      <a class="ghbtn" href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.11.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        GitHub
+      </a>
+      <button class="themebtn" id="themeToggle" title="Toggle theme" aria-label="Toggle color theme">◐</button>
+    </nav>
   </div>
 </header>
 
-<nav class="toc" aria-label="Sections">
-  <div class="inner">
-    <a href="#why">Why</a>
-    <a href="#read-path">Read path</a>
-    <a href="#modules">Modules</a>
-    <a href="#usage">Usage</a>
-    <a href="#credentials">Credentials</a>
-    <a href="#testing">Testing</a>
-    <a href="#emulator-limits">Emulator limits</a>
-    <a href="#build">Build</a>
-  </div>
-</nav>
+<a id="top"></a>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">BigQuery for Spring Boot</div>
+      <h1 class="title">Read BigQuery in Avro,<br>test it on an emulator.</h1>
+      <p class="lede">Spring Boot integration for Google BigQuery, built around the Storage Read API, with an emulator you can test against.</p>
+      <div class="pills">
+        <span class="pill">Java 21</span>
+        <span class="pill">Spring Boot 3.5</span>
+        <span class="pill">Storage Read API · Avro</span>
+        <span class="pill">Testcontainers</span>
+        <span class="pill">Apache-2.0</span>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="#usage">Get started</a>
+        <a class="btn ghost" href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
+    </div>
 
-<main>
-
-<section id="why">
-  <h2><span class="dot" style="background:var(--indigo)"></span>Why bqkit</h2>
-  <p class="lead">Reading a large query result through the BigQuery REST API is slow. The Storage Read API streams rows in Avro over gRPC instead. bqkit wires that path into Spring Boot.</p>
-  <div class="cards">
-    <div class="card c-blue">
-      <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><path d="M17 15l3 3-3 3"/></svg></div>
-      <h3>Query to Avro</h3>
-      <p>Run a query into a destination table, then stream it in Avro through <code>BigQueryReadClient</code>.</p>
-    </div>
-    <div class="card c-orange">
-      <div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-      <h3>Impersonation</h3>
-      <p>Application Default Credentials, with optional service account impersonation.</p>
-    </div>
-    <div class="card c-teal">
-      <div class="icon"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/></svg></div>
-      <h3>Emulator tests</h3>
-      <p>A <code>@ServiceConnection</code> for the BigQuery emulator with Testcontainers: no GCP project needed.</p>
-    </div>
-    <div class="card c-green">
-      <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
-      <h3>Backs off</h3>
-      <p>Every bean steps aside when your application defines its own.</p>
+    <div class="code">
+      <div class="ct"><span class="dot a"></span><span class="dot b"></span><span class="dot c"></span><span style="margin-left:6px">ProductRepository.java</span></div>
+<pre><code><span class="t">List</span>&lt;<span class="t">GenericRecord</span>&gt; rows = reader.query(
+        <span class="s">"SELECT name FROM `my-project.shop.products` WHERE price &gt; 1.5"</span>,
+        <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"query_result"</span>));</code></pre>
     </div>
   </div>
 </section>
 
-<section id="read-path">
-  <h2><span class="dot" style="background:var(--blue)"></span>The read path</h2>
-  <p class="lead">One call to <code>query(sql, destination)</code> runs three steps.</p>
-  <figure>
-    <svg viewBox="0 0 960 300" role="img" aria-label="Read path: the application calls QueryAvroReader, which runs a query job into a destination table, opens a Storage Read session on it and decodes the Avro stream into GenericRecord rows.">
-      <defs>
-        <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-          <path d="M0 0L10 5L0 10z" fill="var(--muted)"/>
-        </marker>
-      </defs>
-      <rect class="zone" x="300" y="14" width="646" height="272" rx="18"/>
-      <text class="zlbl" x="322" y="38">GOOGLE BIGQUERY</text>
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Why bqkit</div>
+      <h2>Skip the REST pagination, stream the rows.</h2>
+      <p>Reading a large query result through the BigQuery REST API is slow. The Storage Read API streams rows in Avro over gRPC instead. bqkit wires that path into Spring Boot.</p>
+    </div>
+    <div class="features">
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><path d="M17 15l3 3-3 3"/></svg></div>
+        <h3>Query to Avro</h3>
+        <p>Run a query into a destination table, then stream it in Avro through <code>BigQueryReadClient</code>.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h3>Impersonation</h3>
+        <p>Application Default Credentials, with optional service account impersonation.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/></svg></div>
+        <h3>Emulator tests</h3>
+        <p>A <code>@ServiceConnection</code> for the BigQuery emulator with Testcontainers: no GCP project needed.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Backs off</h3>
+        <p>Every bean steps aside when your application defines its own.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <rect class="box f-indigo" x="14" y="40" width="230" height="84" rx="12"/>
-      <text class="lbl" x="129" y="76" text-anchor="middle">Your application</text>
-      <text class="sub" x="129" y="100" text-anchor="middle">reader.query(sql, table)</text>
+<section id="read-path" class="band">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The read path</div>
+      <h2>One call, three steps.</h2>
+      <p>One call to <code>query(sql, destination)</code> runs a query job, lands the result in a table, then streams that table in Avro.</p>
+    </div>
+    <figure class="diagram reveal">
+      <svg viewBox="0 0 960 300" role="img" aria-label="Read path: the application calls QueryAvroReader, which runs a query job into a destination table, opens a Storage Read session on it and decodes the Avro stream into GenericRecord rows.">
+        <defs>
+          <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="var(--muted)"/>
+          </marker>
+        </defs>
+        <rect class="zone" x="300" y="14" width="646" height="272" rx="18"/>
+        <text class="zlbl" x="322" y="38">GOOGLE BIGQUERY</text>
 
-      <rect class="box f-indigo" x="14" y="176" width="230" height="84" rx="12"/>
-      <text class="lbl" x="129" y="212" text-anchor="middle">QueryAvroReader</text>
-      <text class="sub" x="129" y="236" text-anchor="middle">bqkit-core</text>
-      <path class="arrow" d="M129 126 V172"/>
+        <rect class="box f-node" x="14" y="40" width="230" height="84" rx="12"/>
+        <text class="lbl" x="129" y="76" text-anchor="middle">Your application</text>
+        <text class="sub" x="129" y="100" text-anchor="middle">reader.query(sql, table)</text>
 
-      <rect class="box f-blue" x="350" y="56" width="240" height="72" rx="12"/>
-      <text class="lbl" x="470" y="88" text-anchor="middle">Query job</text>
-      <text class="sub" x="470" y="110" text-anchor="middle">REST · WRITE_TRUNCATE</text>
+        <rect class="box f-accent" x="14" y="176" width="230" height="84" rx="12"/>
+        <text class="lbl" x="129" y="212" text-anchor="middle">QueryAvroReader</text>
+        <text class="sub" x="129" y="236" text-anchor="middle">bqkit-core</text>
+        <path class="arrow" d="M129 126 V172"/>
 
-      <rect class="box f-blue" x="680" y="56" width="240" height="72" rx="12"/>
-      <text class="lbl" x="800" y="88" text-anchor="middle">Destination table</text>
-      <text class="sub" x="800" y="110" text-anchor="middle">shop.query_result</text>
+        <rect class="box f-node" x="350" y="56" width="240" height="72" rx="12"/>
+        <text class="lbl" x="470" y="88" text-anchor="middle">Query job</text>
+        <text class="sub" x="470" y="110" text-anchor="middle">REST · WRITE_TRUNCATE</text>
 
-      <rect class="box f-teal" x="680" y="190" width="240" height="72" rx="12"/>
-      <text class="lbl" x="800" y="222" text-anchor="middle">Storage Read session</text>
-      <text class="sub" x="800" y="244" text-anchor="middle">gRPC · Avro stream</text>
+        <rect class="box f-node" x="680" y="56" width="240" height="72" rx="12"/>
+        <text class="lbl" x="800" y="88" text-anchor="middle">Destination table</text>
+        <text class="sub" x="800" y="110" text-anchor="middle">shop.query_result</text>
 
-      <rect class="box f-green" x="350" y="190" width="240" height="72" rx="12"/>
-      <text class="lbl" x="470" y="222" text-anchor="middle">List&lt;GenericRecord&gt;</text>
-      <text class="sub" x="470" y="244" text-anchor="middle">decoded rows</text>
+        <rect class="box f-accent" x="680" y="190" width="240" height="72" rx="12"/>
+        <text class="lbl" x="800" y="222" text-anchor="middle">Storage Read session</text>
+        <text class="sub" x="800" y="244" text-anchor="middle">gRPC · Avro stream</text>
 
-      <path class="arrow" d="M246 200 C 300 200, 300 92, 346 92"/>
-      <path class="arrow" d="M592 92 H676"/>
-      <path class="arrow" d="M800 130 V186"/>
-      <path class="arrow" d="M678 226 H594"/>
-      <path class="arrow dash" d="M348 240 C 300 240, 290 240, 248 236"/>
+        <rect class="box f-ok" x="350" y="190" width="240" height="72" rx="12"/>
+        <text class="lbl" x="470" y="222" text-anchor="middle">List&lt;GenericRecord&gt;</text>
+        <text class="sub" x="470" y="244" text-anchor="middle">decoded rows</text>
 
-      <circle cx="320" cy="140" r="13" fill="var(--blue)"/><text class="num" x="320" y="145" text-anchor="middle">1</text>
-      <circle cx="634" cy="72" r="13" fill="var(--blue)"/><text class="num" x="634" y="77" text-anchor="middle">2</text>
-      <circle cx="636" cy="206" r="13" fill="var(--teal)"/><text class="num" x="636" y="211" text-anchor="middle">3</text>
-    </svg>
-    <figcaption>1. Run the query · 2. Results land in the destination table · 3. Stream the table in Avro and decode it</figcaption>
-  </figure>
+        <path class="arrow" d="M246 200 C 300 200, 300 92, 346 92"/>
+        <path class="arrow" d="M592 92 H676"/>
+        <path class="arrow" d="M800 130 V186"/>
+        <path class="arrow flow" d="M678 226 H594"/>
+        <path class="arrow dash" d="M348 240 C 300 240, 290 240, 248 236"/>
+
+        <circle cx="320" cy="140" r="12" fill="var(--accent)"/><text class="num" x="320" y="144.5" text-anchor="middle">1</text>
+        <circle cx="634" cy="72" r="12" fill="var(--accent)"/><text class="num" x="634" y="76.5" text-anchor="middle">2</text>
+        <circle cx="636" cy="206" r="12" fill="var(--accent)"/><text class="num" x="636" y="210.5" text-anchor="middle">3</text>
+      </svg>
+      <figcaption>1. Run the query · 2. Results land in the destination table · 3. Stream the table in Avro and decode it</figcaption>
+    </figure>
+  </div>
 </section>
 
 <section id="modules">
-  <h2><span class="dot" style="background:var(--teal)"></span>Modules</h2>
-  <p class="lead">Use the core alone, or let the starter wire it for you.</p>
-  <figure>
-    <svg viewBox="0 0 960 230" role="img" aria-label="Modules: bqkit-spring-boot-starter and bqkit-test both build on bqkit-core.">
-      <rect class="box f-indigo" x="310" y="20" width="340" height="96" rx="14"/>
-      <text class="lbl" x="480" y="52" text-anchor="middle">bqkit-core</text>
-      <text class="sub" x="480" y="76" text-anchor="middle">BigQueryClients · CredentialsFactory</text>
-      <text class="sub" x="480" y="96" text-anchor="middle">QueryAvroReader · no Spring</text>
-
-      <rect class="box f-blue" x="40" y="126" width="330" height="88" rx="14"/>
-      <text class="lbl" x="205" y="160" text-anchor="middle">bqkit-spring-boot-starter</text>
-      <text class="sub" x="205" y="184" text-anchor="middle">auto-configures BigQuery,</text>
-      <text class="sub" x="205" y="202" text-anchor="middle">BigQueryReadClient, QueryAvroReader</text>
-
-      <rect class="box f-teal" x="590" y="126" width="330" height="88" rx="14"/>
-      <text class="lbl" x="755" y="160" text-anchor="middle">bqkit-test</text>
-      <text class="sub" x="755" y="184" text-anchor="middle">BqkitBigQueryEmulatorContainer</text>
-      <text class="sub" x="755" y="202" text-anchor="middle">@ServiceConnection support</text>
-
-      <path class="arrow" d="M280 124 C 280 90, 290 70, 306 68"/>
-      <path class="arrow" d="M680 124 C 680 90, 670 70, 654 68"/>
-      <text class="edge" x="266" y="96" text-anchor="end">uses</text>
-      <text class="edge" x="698" y="96">uses</text>
-    </svg>
-  </figure>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Modules</div>
+      <h2>Take only what you need.</h2>
+      <p>Use the core alone, or let the starter wire it for you.</p>
+    </div>
+    <div class="mods">
+      <div class="mod reveal"><code>bqkit-core</code><span>Spring-free clients: <code>BigQueryClients</code>, <code>CredentialsFactory</code>, <code>QueryAvroReader</code>.</span></div>
+      <div class="mod reveal"><code>bqkit-spring-boot-starter</code><span>Auto-configuration of <code>BigQuery</code>, <code>BigQueryReadClient</code> and <code>QueryAvroReader</code>.</span></div>
+      <div class="mod reveal"><code>bqkit-test</code><span>Emulator container and <code>@ServiceConnection</code> support for tests.</span></div>
+    </div>
+  </div>
 </section>
 
-<section id="usage">
-  <h2><span class="dot" style="background:var(--green)"></span>Usage</h2>
-  <p class="note" id="unreleased">bqkit is not released yet: build it locally with <code>mvn install</code>.</p>
-  <p>Each major version of bqkit targets one Spring Boot generation:</p>
-  <ul>
-    <li>bqkit 1.0.x: Spring Boot 3.5, Java 21. This line only receives fixes.</li>
-    <li>bqkit 2.x: Spring Boot 4 (planned).</li>
-  </ul>
-  <div class="two">
-    <div>
-      <h3>1. Add the starter</h3>
-<pre data-lang="xml"><code><span class="t">&lt;dependency&gt;</span>
+<section id="usage" class="band">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Usage</div>
+      <h2>Add the starter, set a project, query.</h2>
+      <p>Each major version of bqkit targets one Spring Boot generation.</p>
+    </div>
+    <p class="note" id="unreleased"><span class="tagk warn">unreleased</span><span>bqkit is not released yet: build it locally with <code>mvn install</code>.</span></p>
+    <ul class="versions">
+      <li>bqkit 1.0.x: Spring Boot 3.5, Java 21. This line only receives fixes.</li>
+      <li>bqkit 2.x: Spring Boot 4 (planned).</li>
+    </ul>
+    <div class="code-grid">
+      <div class="code reveal">
+        <div class="ct"><span class="tag">pom.xml</span> — 1. add the starter
+          <button class="copy" data-copy="starter">Copy</button></div>
+<pre id="starter"><code><span class="t">&lt;dependency&gt;</span>
     <span class="t">&lt;groupId&gt;</span>io.github.bqkit<span class="t">&lt;/groupId&gt;</span>
     <span class="t">&lt;artifactId&gt;</span>bqkit-spring-boot-starter<span class="t">&lt;/artifactId&gt;</span>
     <span class="t">&lt;version&gt;</span><span class="bqkit-version">${bqkit.version}</span><span class="t">&lt;/version&gt;</span>
 <span class="t">&lt;/dependency&gt;</span></code></pre>
-    </div>
-    <div>
-      <h3>2. Configure</h3>
-<pre data-lang="yaml"><code><span class="t">bqkit</span>:
+      </div>
+      <div class="code reveal">
+        <div class="ct"><span class="tag">application.yml</span> — 2. configure
+          <button class="copy" data-copy="config">Copy</button></div>
+<pre id="config"><code><span class="t">bqkit</span>:
   <span class="t">bigquery</span>:
     <span class="t">project-id</span>: <span class="s">my-project</span>
     <span class="t">impersonate-service-account</span>: <span class="s">reader@my-project.iam.gserviceaccount.com</span> <span class="c"># optional</span></code></pre>
+      </div>
     </div>
-  </div>
-  <h3>3. Query</h3>
-<pre data-lang="java"><code><span class="t">List</span>&lt;<span class="t">GenericRecord</span>&gt; rows = reader.query(
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — 3. query
+        <button class="copy" data-copy="query">Copy</button></div>
+<pre id="query"><code><span class="t">List</span>&lt;<span class="t">GenericRecord</span>&gt; rows = reader.query(
         <span class="s">"SELECT name FROM `my-project.shop.products` WHERE price &gt; 1.5"</span>,
         <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"query_result"</span>));</code></pre>
-  <div class="methods">
-    <div class="method c-blue"><code>query(sql, destination)</code><p>Truncates the destination table before writing, then reads it.</p></div>
-    <div class="method c-indigo"><code>query(sql)</code><p>Reads the anonymous result table that BigQuery creates for the job.</p></div>
-    <div class="method c-teal"><code>readTable(table)</code><p>Reads an existing table.</p></div>
+    </div>
+    <div class="mods">
+      <div class="mod reveal"><code>query(sql, destination)</code><span>Truncates the destination table before writing, then reads it.</span></div>
+      <div class="mod reveal"><code>query(sql)</code><span>Reads the anonymous result table that BigQuery creates for the job.</span></div>
+      <div class="mod reveal"><code>readTable(table)</code><span>Reads an existing table.</span></div>
+    </div>
+    <div class="prose"><p>Every bean backs off when the application defines its own. Defining a <code>BigQueryConnectionDetails</code> bean replaces the connection built from the properties.</p></div>
   </div>
-  <p>Every bean backs off when the application defines its own. Defining a <code>BigQueryConnectionDetails</code> bean replaces the connection built from the properties.</p>
 </section>
 
 <section id="credentials">
-  <h2><span class="dot" style="background:var(--orange)"></span>Credentials</h2>
-  <p class="lead">Set <code>impersonate-service-account</code> to read with a service account's permissions instead of your own.</p>
-  <figure>
-    <svg viewBox="0 0 960 170" role="img" aria-label="Credentials: Application Default Credentials are scoped to cloud-platform, then optionally impersonate a service account, and are used by the BigQuery clients.">
-      <rect class="box f-orange" x="20" y="44" width="200" height="80" rx="14"/>
-      <text class="lbl" x="120" y="78" text-anchor="middle">Application Default</text>
-      <text class="lbl" x="120" y="100" text-anchor="middle">Credentials</text>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Credentials</div>
+      <h2>Read with a service account's permissions.</h2>
+      <p>Set <code>impersonate-service-account</code> to read with a service account's permissions instead of your own.</p>
+    </div>
+    <figure class="diagram reveal">
+      <svg viewBox="0 0 960 170" role="img" aria-label="Credentials: Application Default Credentials are scoped to cloud-platform, then optionally impersonate a service account, and are used by the BigQuery clients.">
+        <rect class="box f-node" x="20" y="44" width="200" height="80" rx="14"/>
+        <text class="lbl" x="120" y="78" text-anchor="middle">Application Default</text>
+        <text class="lbl" x="120" y="100" text-anchor="middle">Credentials</text>
 
-      <rect class="box f-orange" x="270" y="44" width="200" height="80" rx="14"/>
-      <text class="lbl" x="370" y="78" text-anchor="middle">Scoped</text>
-      <text class="sub" x="370" y="100" text-anchor="middle">cloud-platform</text>
+        <rect class="box f-node" x="270" y="44" width="200" height="80" rx="14"/>
+        <text class="lbl" x="370" y="78" text-anchor="middle">Scoped</text>
+        <text class="sub" x="370" y="100" text-anchor="middle">cloud-platform</text>
 
-      <rect class="box f-orange dash" x="520" y="44" width="200" height="80" rx="14"/>
-      <text class="lbl" x="620" y="78" text-anchor="middle">Impersonated SA</text>
-      <text class="sub" x="620" y="100" text-anchor="middle">optional · 1 h tokens</text>
+        <rect class="box f-accent dash" x="520" y="44" width="200" height="80" rx="14"/>
+        <text class="lbl" x="620" y="78" text-anchor="middle">Impersonated SA</text>
+        <text class="sub" x="620" y="100" text-anchor="middle">optional · 1 h tokens</text>
 
-      <rect class="box f-blue" x="770" y="44" width="170" height="80" rx="14"/>
-      <text class="lbl" x="855" y="78" text-anchor="middle">BigQuery</text>
-      <text class="sub" x="855" y="100" text-anchor="middle">REST + gRPC</text>
+        <rect class="box f-ok" x="770" y="44" width="170" height="80" rx="14"/>
+        <text class="lbl" x="855" y="78" text-anchor="middle">BigQuery</text>
+        <text class="sub" x="855" y="100" text-anchor="middle">REST + gRPC</text>
 
-      <path class="arrow" d="M222 84 H266"/>
-      <path class="arrow" d="M472 84 H516"/>
-      <path class="arrow" d="M722 84 H766"/>
-      <path class="arrow dash" d="M370 126 C 370 160, 855 160, 855 128"/>
-      <text class="edge" x="612" y="164" text-anchor="middle">no service account set</text>
-    </svg>
-  </figure>
+        <path class="arrow" d="M222 84 H266"/>
+        <path class="arrow" d="M472 84 H516"/>
+        <path class="arrow" d="M722 84 H766"/>
+        <path class="arrow dash" d="M370 126 C 370 160, 855 160, 855 128"/>
+        <text class="edge" x="612" y="164" text-anchor="middle">no service account set</text>
+      </svg>
+    </figure>
+  </div>
 </section>
 
-<section id="testing">
-  <h2><span class="dot" style="background:var(--teal)"></span>Testing</h2>
-  <p class="lead">Declare the emulator container: Spring Boot connects every bqkit bean to it.</p>
-  <div class="two">
-    <div>
-<pre data-lang="xml"><code><span class="t">&lt;dependency&gt;</span>
+<section id="testing" class="band">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Testing</div>
+      <h2>Declare the emulator, Spring Boot does the rest.</h2>
+      <p>Declare the emulator container: Spring Boot connects every bqkit bean to it.</p>
+    </div>
+    <div class="code-grid">
+      <div class="code reveal">
+        <div class="ct"><span class="tag">pom.xml</span> — test dependency
+          <button class="copy" data-copy="testdep">Copy</button></div>
+<pre id="testdep"><code><span class="t">&lt;dependency&gt;</span>
     <span class="t">&lt;groupId&gt;</span>io.github.bqkit<span class="t">&lt;/groupId&gt;</span>
     <span class="t">&lt;artifactId&gt;</span>bqkit-test<span class="t">&lt;/artifactId&gt;</span>
     <span class="t">&lt;version&gt;</span><span class="bqkit-version">${bqkit.version}</span><span class="t">&lt;/version&gt;</span>
     <span class="t">&lt;scope&gt;</span>test<span class="t">&lt;/scope&gt;</span>
 <span class="t">&lt;/dependency&gt;</span></code></pre>
-    </div>
-    <div>
-<pre data-lang="java"><code><span class="a">@SpringBootTest</span>
+      </div>
+      <div class="code reveal">
+        <div class="ct"><span class="tag">java</span> — emulator container
+          <button class="copy" data-copy="container">Copy</button></div>
+<pre id="container"><code><span class="a">@SpringBootTest</span>
 <span class="a">@Testcontainers</span>
 <span class="k">class</span> <span class="t">ProductRepositoryTest</span> {
 
@@ -401,43 +530,47 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
     <span class="k">static final</span> <span class="t">BqkitBigQueryEmulatorContainer</span> EMULATOR =
             <span class="k">new</span> <span class="t">BqkitBigQueryEmulatorContainer</span>();
 }</code></pre>
+      </div>
     </div>
-  </div>
-  <figure>
-    <svg viewBox="0 0 960 220" role="img" aria-label="Testing: the @ServiceConnection turns the emulator container into BigQueryConnectionDetails, which the starter uses to build clients pointing at the emulator's REST and gRPC ports.">
-      <rect class="zone" x="560" y="14" width="386" height="192" rx="18"/>
-      <text class="zlbl" x="580" y="38">DOCKER · TESTCONTAINERS</text>
+    <figure class="diagram reveal" style="margin-top:20px">
+      <svg viewBox="0 0 960 220" role="img" aria-label="Testing: the @ServiceConnection turns the emulator container into BigQueryConnectionDetails, which the starter uses to build clients pointing at the emulator's REST and gRPC ports.">
+        <rect class="zone" x="560" y="14" width="386" height="192" rx="18"/>
+        <text class="zlbl" x="580" y="38">DOCKER · TESTCONTAINERS</text>
 
-      <rect class="box f-teal" x="20" y="30" width="230" height="72" rx="12"/>
-      <text class="lbl" x="135" y="62" text-anchor="middle">@ServiceConnection</text>
-      <text class="sub" x="135" y="84" text-anchor="middle">bqkit-test</text>
+        <rect class="box f-accent" x="20" y="30" width="230" height="72" rx="12"/>
+        <text class="lbl" x="135" y="62" text-anchor="middle">@ServiceConnection</text>
+        <text class="sub" x="135" y="84" text-anchor="middle">bqkit-test</text>
 
-      <rect class="box f-indigo" x="300" y="30" width="230" height="72" rx="12"/>
-      <text class="lbl" x="415" y="62" text-anchor="middle">ConnectionDetails</text>
-      <text class="sub" x="415" y="84" text-anchor="middle">testproject · plaintext</text>
+        <rect class="box f-node" x="300" y="30" width="230" height="72" rx="12"/>
+        <text class="lbl" x="415" y="62" text-anchor="middle">ConnectionDetails</text>
+        <text class="sub" x="415" y="84" text-anchor="middle">testproject · plaintext</text>
 
-      <rect class="box f-blue" x="300" y="128" width="230" height="72" rx="12"/>
-      <text class="lbl" x="415" y="160" text-anchor="middle">bqkit beans</text>
-      <text class="sub" x="415" y="182" text-anchor="middle">BigQuery · ReadClient</text>
+        <rect class="box f-node" x="300" y="128" width="230" height="72" rx="12"/>
+        <text class="lbl" x="415" y="160" text-anchor="middle">bqkit beans</text>
+        <text class="sub" x="415" y="182" text-anchor="middle">BigQuery · ReadClient</text>
 
-      <rect class="box f-teal" x="600" y="56" width="320" height="130" rx="14"/>
-      <text class="lbl" x="760" y="88" text-anchor="middle">goccy/bigquery-emulator 0.8.1</text>
-      <rect class="box f-blue row" x="624" y="106" width="130" height="56" rx="10"/>
-      <text class="lbl" x="689" y="132" text-anchor="middle">REST</text>
-      <text class="sub" x="689" y="150" text-anchor="middle">:9050</text>
-      <rect class="box f-green row" x="766" y="106" width="130" height="56" rx="10"/>
-      <text class="lbl" x="831" y="132" text-anchor="middle">gRPC</text>
-      <text class="sub" x="831" y="150" text-anchor="middle">:9060 · Avro</text>
+        <rect class="box f-node" x="600" y="56" width="320" height="130" rx="14"/>
+        <text class="lbl" x="760" y="88" text-anchor="middle">goccy/bigquery-emulator 0.8.1</text>
+        <rect class="box f-accent row" x="624" y="106" width="130" height="56" rx="10"/>
+        <text class="lbl" x="689" y="132" text-anchor="middle">REST</text>
+        <text class="sub" x="689" y="150" text-anchor="middle">:9050</text>
+        <rect class="box f-ok row" x="766" y="106" width="130" height="56" rx="10"/>
+        <text class="lbl" x="831" y="132" text-anchor="middle">gRPC</text>
+        <text class="sub" x="831" y="150" text-anchor="middle">:9060 · Avro</text>
 
-      <path class="arrow" d="M252 66 H296"/>
-      <path class="arrow" d="M415 104 V124"/>
-      <path class="arrow" d="M532 164 C 570 164, 580 134, 620 134"/>
-    </svg>
-  </figure>
-  <p><code>BqkitBigQueryEmulatorContainer</code> runs <code>ghcr.io/goccy/bigquery-emulator:0.8.1</code> on project <code>testproject</code> and exposes the gRPC port of the Storage Read API.</p>
-  <h3>A complete test</h3>
-  <p>The application code queries through <code>QueryAvroReader</code>:</p>
-<pre data-lang="java"><code><span class="a">@Repository</span>
+        <path class="arrow" d="M252 66 H296"/>
+        <path class="arrow" d="M415 104 V124"/>
+        <path class="arrow flow" d="M532 164 C 570 164, 580 134, 620 134"/>
+      </svg>
+    </figure>
+    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>ghcr.io/goccy/bigquery-emulator:0.8.1</code> on project <code>testproject</code> and exposes the gRPC port of the Storage Read API.</p></div>
+
+    <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">A complete test</h3>
+    <div class="prose"><p>The application code queries through <code>QueryAvroReader</code>:</p></div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — ProductRepository
+        <button class="copy" data-copy="repository">Copy</button></div>
+<pre id="repository"><code><span class="a">@Repository</span>
 <span class="k">public class</span> <span class="t">ProductRepository</span> {
 
     <span class="k">private static final</span> <span class="t">TableId</span> RESULT = <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"products_in_stock"</span>);
@@ -454,8 +587,12 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
                 .toList();
     }
 }</code></pre>
-  <p>The test seeds the emulator with the <code>BigQuery</code> bean, calls the repository, then checks the result:</p>
-<pre data-lang="java"><code><span class="a">@SpringBootTest</span>
+    </div>
+    <div class="prose"><p>The test seeds the emulator with the <code>BigQuery</code> bean, calls the repository, then checks the result:</p></div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — ProductRepositoryTest
+        <button class="copy" data-copy="test">Copy</button></div>
+<pre id="test"><code><span class="a">@SpringBootTest</span>
 <span class="a">@Testcontainers</span>
 <span class="k">class</span> <span class="t">ProductRepositoryTest</span> {
 
@@ -492,97 +629,131 @@ footer { margin-top: 72px; padding: 28px 16px; text-align: center; color: var(--
         assertThat(names).containsExactlyInAnyOrder(<span class="s">"banana"</span>, <span class="s">"cherry"</span>);
     }
 }</code></pre>
-  <p>The emulator keeps its data for the lifetime of the container: with several tests in a class, give each its own dataset or destination table (see <a href="#emulator-limits">Emulator limits</a>).</p>
+    </div>
+    <div class="prose"><p>The emulator keeps its data for the lifetime of the container: with several tests in a class, give each its own dataset or destination table (see <a href="#emulator-limits">Emulator limits</a>).</p></div>
+  </div>
 </section>
 
 <section id="emulator-limits">
-  <h2><span class="dot" style="background:var(--red)"></span>Emulator limits</h2>
-  <p class="lead">The emulator is not BigQuery. Keep these in mind when a test behaves differently from production.</p>
-  <div class="limits">
-    <div class="limit c-red">
-      <div class="icon"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><circle cx="12" cy="12" r="9"/></svg></div>
-      <div>
-        <h3>Hyphenated project ids break Avro reads</h3>
-        <p>The emulator builds the Avro namespace from the project id, so <code>test-project</code> (the Testcontainers default) fails. <a href="https://github.com/testcontainers/testcontainers-java/pull/12123">testcontainers-java#12123</a> proposes <code>withProjectId</code>.</p>
-        <span class="fix">bqkit uses testproject</span>
-      </div>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Emulator limits</div>
+      <h2>The emulator is not BigQuery.</h2>
+      <p>Keep these in mind when a test behaves differently from production.</p>
     </div>
-    <div class="limit c-orange">
-      <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 8v5"/><circle cx="12" cy="16.5" r=".6"/><path d="M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
-      <div>
-        <h3><code>query(sql)</code> fails</h3>
-        <p>The emulator names the anonymous result table after the job id, which is not a valid Avro name (<a href="https://github.com/goccy/bigquery-emulator/issues/527">bigquery-emulator#527</a>).</p>
-        <span class="fix">Use query(sql, destination) in tests</span>
-      </div>
+    <div class="guar">
+      <div class="g reveal"><span class="tagk err">avro</span><div>
+        <p><strong>Hyphenated project ids break Avro reads.</strong> The emulator builds the Avro namespace from the project id, so <code>test-project</code> (the Testcontainers default) fails. <a href="https://github.com/testcontainers/testcontainers-java/pull/12123">testcontainers-java#12123</a> proposes <code>withProjectId</code>.</p>
+        <p>bqkit uses <code>testproject</code>.</p>
+      </div></div>
+      <div class="g reveal"><span class="tagk warn">query(sql)</span><div>
+        <p><strong><code>query(sql)</code> fails.</strong> The emulator names the anonymous result table after the job id, which is not a valid Avro name (<a href="https://github.com/goccy/bigquery-emulator/issues/527">bigquery-emulator#527</a>).</p>
+        <p>Use <code>query(sql, destination)</code> in tests.</p>
+      </div></div>
+      <div class="g reveal"><span class="tagk warn">truncate</span><div>
+        <p><strong><code>WRITE_TRUNCATE</code> is ignored.</strong> <code>query(sql, destination)</code> appends to the destination table instead of replacing it, so a second query into the same table returns the rows of both.</p>
+        <p>Use a distinct destination table per test, or drop it before each test.</p>
+      </div></div>
     </div>
-    <div class="limit c-orange">
-      <div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M4 15h16"/></svg></div>
-      <div>
-        <h3><code>WRITE_TRUNCATE</code> is ignored</h3>
-        <p><code>query(sql, destination)</code> appends to the destination table instead of replacing it, so a second query into the same table returns the rows of both.</p>
-        <span class="fix">Use a distinct destination table per test, or drop it before each test</span>
-      </div>
+    <figure class="diagram reveal" style="margin-top:20px">
+      <svg viewBox="0 0 960 256" role="img" aria-label="Running the same query twice into the same table: BigQuery keeps 2 rows, the emulator ends up with 4 rows.">
+        <text class="lbl" x="240" y="30" text-anchor="middle">BigQuery</text>
+        <text class="lbl" x="720" y="30" text-anchor="middle">Emulator 0.8.1</text>
+        <line x1="480" y1="16" x2="480" y2="236" stroke="var(--line)" stroke-width="1.5"/>
+
+        <text class="edge" x="40" y="70">after 1st</text>
+        <rect class="row f-node" x="130" y="54" width="300" height="24" rx="5"/><text class="sub" x="146" y="71">apple</text>
+        <rect class="row f-node" x="130" y="82" width="300" height="24" rx="5"/><text class="sub" x="146" y="99">pear</text>
+        <text class="edge" x="40" y="150">after 2nd</text>
+        <rect class="row f-ok" x="130" y="134" width="300" height="24" rx="5"/><text class="sub" x="146" y="151">apple</text>
+        <rect class="row f-ok" x="130" y="162" width="300" height="24" rx="5"/><text class="sub" x="146" y="179">pear</text>
+        <text class="edge" x="280" y="220" text-anchor="middle" style="fill:var(--ok)">2 rows: table replaced</text>
+
+        <text class="edge" x="520" y="70">after 1st</text>
+        <rect class="row f-node" x="610" y="54" width="300" height="24" rx="5"/><text class="sub" x="626" y="71">apple</text>
+        <rect class="row f-node" x="610" y="82" width="300" height="24" rx="5"/><text class="sub" x="626" y="99">pear</text>
+        <text class="edge" x="520" y="150">after 2nd</text>
+        <rect class="row f-node" x="610" y="120" width="300" height="24" rx="5"/><text class="sub" x="626" y="137">apple</text>
+        <rect class="row f-node" x="610" y="148" width="300" height="24" rx="5"/><text class="sub" x="626" y="165">pear</text>
+        <rect class="row f-err" x="610" y="176" width="300" height="24" rx="5"/><text class="sub" x="626" y="193">apple   (appended)</text>
+        <rect class="row f-err" x="610" y="204" width="300" height="24" rx="5"/><text class="sub" x="626" y="221">pear    (appended)</text>
+        <text class="edge" x="760" y="250" text-anchor="middle" style="fill:var(--err)">4 rows: duplicates</text>
+      </svg>
+      <figcaption>Same query, same destination table, run twice</figcaption>
+    </figure>
+    <div class="prose"><p>See also <a href="https://github.com/goccy/bigquery-emulator/pull/508">bigquery-emulator#508</a>.</p></div>
+    <p class="note reveal" style="margin-top:20px"><span class="tagk ok">prod</span><span>None of these limits affect BigQuery itself.</span></p>
+  </div>
+</section>
+
+<section id="build" class="final band">
+  <div class="wrap">
+    <div class="eyebrow reveal">Build</div>
+    <h2 class="reveal" style="margin-top:10px">Build it with Maven.</h2>
+    <p class="reveal">The tests need Docker.</p>
+    <div class="code reveal" style="max-width:420px; margin:26px auto 0; text-align:left">
+      <div class="ct"><span class="tag">shell</span>
+        <button class="copy" data-copy="build">Copy</button></div>
+<pre id="build"><code>mvn verify</code></pre>
+    </div>
+    <div class="cta reveal" style="justify-content:center; margin-top:26px">
+      <a class="btn primary" href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">View on GitHub</a>
     </div>
   </div>
-  <figure>
-    <svg viewBox="0 0 960 250" role="img" aria-label="Running the same query twice into the same table: BigQuery keeps 2 rows, the emulator ends up with 4 rows.">
-      <text class="lbl" x="240" y="30" text-anchor="middle">BigQuery</text>
-      <text class="lbl" x="720" y="30" text-anchor="middle">Emulator 0.8.1</text>
-      <line x1="480" y1="16" x2="480" y2="236" stroke="var(--border)" stroke-width="2"/>
-
-      <text class="edge" x="40" y="70">after 1st</text>
-      <rect class="row f-blue" x="130" y="54" width="300" height="24" rx="5"/><text class="sub" x="146" y="71">apple</text>
-      <rect class="row f-blue" x="130" y="82" width="300" height="24" rx="5"/><text class="sub" x="146" y="99">pear</text>
-      <text class="edge" x="40" y="150">after 2nd</text>
-      <rect class="row f-green" x="130" y="134" width="300" height="24" rx="5"/><text class="sub" x="146" y="151">apple</text>
-      <rect class="row f-green" x="130" y="162" width="300" height="24" rx="5"/><text class="sub" x="146" y="179">pear</text>
-      <text class="edge" x="280" y="220" text-anchor="middle" style="fill:var(--green)">2 rows: table replaced</text>
-
-      <text class="edge" x="520" y="70">after 1st</text>
-      <rect class="row f-blue" x="610" y="54" width="300" height="24" rx="5"/><text class="sub" x="626" y="71">apple</text>
-      <rect class="row f-blue" x="610" y="82" width="300" height="24" rx="5"/><text class="sub" x="626" y="99">pear</text>
-      <text class="edge" x="520" y="150">after 2nd</text>
-      <rect class="row f-blue" x="610" y="120" width="300" height="24" rx="5"/><text class="sub" x="626" y="137">apple</text>
-      <rect class="row f-blue" x="610" y="148" width="300" height="24" rx="5"/><text class="sub" x="626" y="165">pear</text>
-      <rect class="row f-red" x="610" y="176" width="300" height="24" rx="5"/><text class="sub" x="626" y="193">apple   (appended)</text>
-      <rect class="row f-red" x="610" y="204" width="300" height="24" rx="5"/><text class="sub" x="626" y="221">pear    (appended)</text>
-      <text class="edge" x="760" y="246" text-anchor="middle" style="fill:var(--red)">4 rows: duplicates</text>
-    </svg>
-    <figcaption>Same query, same destination table, run twice</figcaption>
-  </figure>
-  <p>See also <a href="https://github.com/goccy/bigquery-emulator/pull/508">bigquery-emulator#508</a>.</p>
-  <div class="callout">None of these limits affect BigQuery itself.</div>
 </section>
-
-<section id="build">
-  <h2><span class="dot" style="background:var(--indigo)"></span>Build</h2>
-<pre data-lang="sh"><code>mvn verify</code></pre>
-  <p>The tests need Docker.</p>
-</section>
-
-</main>
 
 <footer>
-  bqkit is released under the <a href="https://github.com/bqkit/bqkit/blob/HEAD/LICENSE">Apache License 2.0</a>.
+  <div class="wrap">
+    <span>bqkit — <a href="https://github.com/bqkit/bqkit/blob/HEAD/LICENSE">Apache License 2.0</a></span>
+    <a href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">GitHub</a>
+    <span class="sp">Java 21 · Spring Boot 3.5</span>
+  </div>
 </footer>
 
 <script>
-fetch("https://api.github.com/repos/bqkit/bqkit/tags?per_page=100")
-  .then(response => response.ok ? response.json() : [])
-  .then(tags => {
-    const versions = tags
-      .map(tag => tag.name)
-      .filter(name => /^v\d+\.\d+\.\d+$/.test(name))
-      .map(name => name.slice(1).split(".").map(Number))
-      .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
-    if (versions.length === 0) {
-      return;
-    }
-    const latest = versions[versions.length - 1].join(".");
-    document.querySelectorAll(".bqkit-version").forEach(el => { el.textContent = latest; });
-    document.getElementById("unreleased").hidden = true;
-  })
-  .catch(() => {});
+  (function () {
+    var root = document.documentElement, key = "bqkit-theme";
+    try { var s = localStorage.getItem(key); if (s === "light" || s === "dark") root.setAttribute("data-theme", s); } catch (e) {}
+    var btn = document.getElementById("themeToggle");
+    btn && btn.addEventListener("click", function () {
+      var cur = root.getAttribute("data-theme");
+      if (!cur) cur = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      var next = cur === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem(key, next); } catch (e) {}
+    });
+  })();
+  document.querySelectorAll(".copy").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var el = document.getElementById(b.dataset.copy); if (!el) return;
+      navigator.clipboard && navigator.clipboard.writeText(el.innerText).then(function () {
+        var t = b.textContent; b.textContent = "Copied"; setTimeout(function () { b.textContent = t; }, 1400);
+      });
+    });
+  });
+  (function () {
+    if (!("IntersectionObserver" in window)) { document.querySelectorAll(".reveal").forEach(function (e) { e.classList.add("in"); }); return; }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold: .12 });
+    document.querySelectorAll(".reveal").forEach(function (e) { io.observe(e); });
+  })();
+  fetch("https://api.github.com/repos/bqkit/bqkit/tags?per_page=100")
+    .then(response => response.ok ? response.json() : [])
+    .then(tags => {
+      const versions = tags
+        .map(tag => tag.name)
+        .filter(name => /^v\d+\.\d+\.\d+$/.test(name))
+        .map(name => name.slice(1).split(".").map(Number))
+        .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+      if (versions.length === 0) {
+        return;
+      }
+      const latest = versions[versions.length - 1].join(".");
+      document.querySelectorAll(".bqkit-version").forEach(el => { el.textContent = latest; });
+      document.getElementById("unreleased").hidden = true;
+    })
+    .catch(() => {});
 </script>
 </body>
 </html>

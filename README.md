@@ -11,7 +11,8 @@
 
 Spring Boot integration for Google BigQuery, built around the Storage Read API:
 
-- run a query into a destination table, then read that table in Avro through `BigQueryReadClient`;
+- run a query into a destination table, then read that table through `BigQueryReadClient`, in Avro
+  (`QueryAvroReader`) or in Arrow (`QueryArrowReader`);
 - optional service account impersonation on top of the Application Default Credentials;
 - a `@ServiceConnection` for the [BigQuery emulator](https://github.com/goccy/bigquery-emulator) with Testcontainers.
 
@@ -24,8 +25,10 @@ Each major version of bqkit targets one Spring Boot generation:
 
 ## Modules
 
-- `bqkit-core`: Spring-free clients (`BigQueryClients`, `CredentialsFactory`, `QueryAvroReader`).
-- `bqkit-spring-boot-starter`: auto-configuration of `BigQuery`, `BigQueryReadClient` and `QueryAvroReader`.
+- `bqkit-core`: Spring-free clients (`BigQueryClients`, `CredentialsFactory`, `QueryAvroReader`,
+  `QueryArrowReader`).
+- `bqkit-spring-boot-starter`: auto-configuration of `BigQuery`, `BigQueryReadClient`, `QueryAvroReader`
+  and `QueryArrowReader`.
 - `bqkit-test`: emulator container and `@ServiceConnection` support for tests.
 
 ## Usage
@@ -56,6 +59,38 @@ List<GenericRecord> rows = reader.query(
 
 `query(sql, destination)` truncates the destination table before writing. `query(sql)` reads the
 anonymous result table that BigQuery creates for the job. `readTable(table)` reads an existing table.
+
+### Avro or Arrow
+
+The starter declares both readers: inject the one that fits the use case.
+
+- `QueryAvroReader` returns the rows as a `List<GenericRecord>`: simple, for results that fit in memory.
+- `QueryArrowReader` hands the result to a callback, one columnar record batch at a time: for large
+  results, or to work on columns.
+
+```java
+reader.query("SELECT name, price FROM `my-project.shop.products`", TableId.of("shop", "query_result"), batch -> {
+    VarCharVector name = (VarCharVector) batch.getVector("name");
+    for (int i = 0; i < batch.getRowCount(); i++) {
+        System.out.println(name.getObject(i));
+    }
+});
+```
+
+The batch is released once the callback returns: copy what you keep. Arrow needs access to `java.nio`
+on Java 21: start the application, and the tests, with
+`--add-opens=java.base/java.nio=ALL-UNNAMED`. Without it, the first read fails with
+`Failed to initialize MemoryUtil`.
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <configuration>
+        <argLine>--add-opens=java.base/java.nio=ALL-UNNAMED</argLine>
+    </configuration>
+</plugin>
+```
 
 Every bean backs off when the application defines its own. Defining a `BigQueryConnectionDetails`
 bean replaces the connection built from the properties.
@@ -213,9 +248,9 @@ each its own dataset or destination table (see the limits below).
   (such as `test-project`, the Testcontainers default) breaks Avro reads.
   [testcontainers/testcontainers-java#12123](https://github.com/testcontainers/testcontainers-java/pull/12123)
   proposes `withProjectId`.
-- `query(sql)` fails on the emulator: it names the anonymous result table after the job id,
-  which is not a valid Avro name ([goccy/bigquery-emulator#527](https://github.com/goccy/bigquery-emulator/issues/527)).
-  Use `query(sql, destination)` in tests.
+- `QueryAvroReader.query(sql)` fails on the emulator: it names the anonymous result table after the
+  job id, which is not a valid Avro name ([goccy/bigquery-emulator#527](https://github.com/goccy/bigquery-emulator/issues/527)).
+  Use `query(sql, destination)` in tests. `QueryArrowReader` is not affected.
 - The emulator ignores `WRITE_TRUNCATE`: `query(sql, destination)` appends to the destination
   table instead of replacing it, so a second query into the same table returns the rows of both.
   Use a distinct destination table per test, or drop it before each test.

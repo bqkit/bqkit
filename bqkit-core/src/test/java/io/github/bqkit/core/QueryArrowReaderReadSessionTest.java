@@ -14,6 +14,7 @@ import com.google.api.gax.rpc.ServerStream;
 import com.google.api.gax.rpc.ServerStreamingCallable;
 import com.google.cloud.NoCredentials;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.ArrowRecordBatch;
 import com.google.cloud.bigquery.storage.v1.ArrowSchema;
@@ -24,12 +25,17 @@ import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
 import com.google.cloud.bigquery.storage.v1.ReadStream;
 import com.google.protobuf.ByteString;
+import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.arrow.flatbuf.Message;
 import org.apache.arrow.memory.ArrowBuf;
+import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.VarCharVector;
+import org.apache.arrow.vector.ipc.ReadChannel;
+import org.apache.arrow.vector.ipc.message.MessageChannelReader;
 import org.apache.arrow.vector.ipc.message.MessageSerializer;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
@@ -98,8 +104,28 @@ class QueryArrowReaderReadSessionTest {
     }
 
     @Test
-    void skips_record_batches_without_rows() {
+    void bills_the_read_to_the_project_of_the_table_when_the_connection_has_no_default_project() {
+        BigQuery withoutProject = mock(BigQuery.class);
+        BigQueryOptions options = mock(BigQueryOptions.class);
+        when(withoutProject.getOptions()).thenReturn(options);
+        when(readClient.createReadSession(any(CreateReadSessionRequest.class))).thenReturn(ArrowMessages.session());
+
+        new QueryArrowReader(withoutProject, readClient).readTable(TableId.of("other-project", "shop", "products"),
+                batch -> { });
+
+        ArgumentCaptor<CreateReadSessionRequest> request = ArgumentCaptor.forClass(CreateReadSessionRequest.class);
+        verify(readClient).createReadSession(request.capture());
+        assertThat(request.getValue().getParent()).isEqualTo("projects/other-project");
+    }
+
+    @Test
+    void skips_record_batches_without_rows() throws IOException {
         Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        try (BufferAllocator allocator = new RootAllocator();
+             MessageChannelReader messages = new MessageChannelReader(new ReadChannel(
+                     new ByteStringChannel(ArrowMessages.recordBatch(schema))), allocator)) {
+            assertThat(messages.readNext().getBodyBuffer()).isNull();
+        }
         stream(schema, rows(ArrowMessages.recordBatch(schema)), rows(ArrowMessages.recordBatch(schema, "apple")));
         List<Integer> rowCounts = new ArrayList<>();
 

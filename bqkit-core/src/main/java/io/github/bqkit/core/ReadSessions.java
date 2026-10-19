@@ -10,8 +10,8 @@ import com.google.cloud.bigquery.storage.v1.ReadSession;
 import java.util.Objects;
 
 /**
- * Opens a single-stream read session on a table, billed to the default project whatever the project of the
- * table, and cancels its stream.
+ * Opens a single-stream read session on a table, billed to the default project, or else to the project of
+ * the table, and cancels its stream.
  */
 final class ReadSessions {
 
@@ -19,8 +19,9 @@ final class ReadSessions {
     }
 
     static ReadSession create(BigQuery bigQuery, BigQueryReadClient readClient, TableId table, DataFormat format) {
-        String billingProject = bigQuery.getOptions().getProjectId();
-        String tableProject = Objects.requireNonNullElse(table.getProject(), billingProject);
+        String defaultProject = bigQuery.getOptions().getProjectId();
+        String tableProject = Objects.requireNonNullElse(table.getProject(), defaultProject);
+        String billingProject = Objects.requireNonNullElse(defaultProject, tableProject);
         return readClient.createReadSession(CreateReadSessionRequest.newBuilder()
                 .setParent("projects/" + billingProject)
                 .setReadSession(ReadSession.newBuilder()

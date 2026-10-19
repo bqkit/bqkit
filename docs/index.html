@@ -483,7 +483,7 @@
 
     <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">Avro or Arrow</h3>
     <div class="prose"><p>The starter declares both readers: inject the one that fits the use case. <code>QueryAvroReader</code> reads row by row: it returns the rows as a <code>List&lt;GenericRecord&gt;</code>, which holds the whole result in memory, or hands each row to a callback, for large results. <code>QueryArrowReader</code> hands the result to a callback, one columnar record batch at a time: to work on columns.</p></div>
-    <div class="prose"><p><code>QueryAvroReader</code> streams the rows with <code>query(sql, rows)</code>, <code>query(sql, destination, rows)</code> or <code>readTable(table, rows)</code>:</p></div>
+    <div class="prose"><p><code>QueryAvroReader</code> streams the rows with <code>query(sql, rows)</code>, <code>query(sql, destination, rows)</code>, <code>query(configuration, rows)</code> or <code>readTable(table, rows)</code>:</p></div>
     <div class="code reveal">
       <div class="ct"><span class="tag">java</span> — stream Avro rows
         <button class="copy" data-copy="avro-stream">Copy</button></div>
@@ -491,6 +491,7 @@
         row -&gt; <span class="t">System</span>.out.println(row.get(<span class="s">"name"</span>)));</code></pre>
     </div>
     <div class="prose"><p>The next response of the stream is only requested once every row of the current one has gone through the callback, so a slow callback slows the read down instead of filling the memory. If a row cannot be decoded or the callback throws, the read stops and the stream is cancelled: the rows before it have already been handed to the callback.</p></div>
+    <div class="prose"><p><code>QueryAvroReader</code> returns BigQuery values as Java types: <code>STRING</code> as <code>String</code>, <code>TIMESTAMP</code> as <code>Instant</code>, <code>DATE</code> as <code>LocalDate</code>, <code>TIME</code> as <code>LocalTime</code>, <code>NUMERIC</code> and <code>BIGNUMERIC</code> as <code>BigDecimal</code>, <code>INT64</code> as <code>Long</code>, <code>FLOAT64</code> as <code>Double</code>, <code>BOOL</code> as <code>Boolean</code>, <code>BYTES</code> as <code>ByteBuffer</code>. <code>DATETIME</code>, <code>GEOGRAPHY</code> and <code>JSON</code> stay <code>String</code>, as BigQuery sends them. <code>STRUCT</code> is a nested <code>GenericRecord</code>, <code>ARRAY</code> a <code>List</code>, and <code>NULL</code> is <code>null</code>.</p></div>
     <div class="prose"><p><code>QueryArrowReader</code> takes the same arguments, and calls the callback once per record batch:</p></div>
     <div class="code reveal">
       <div class="ct"><span class="tag">java</span> — stream Arrow batches
@@ -678,7 +679,7 @@
 
     <span class="k">public</span> <span class="t">List</span>&lt;<span class="t">String</span>&gt; findNamesInStock() {
         <span class="k">return</span> reader.query(<span class="s">"SELECT name FROM shop.products WHERE stock &gt; 0"</span>, RESULT).stream()
-                .map(row -&gt; row.get(<span class="s">"name"</span>).toString())
+                .map(row -&gt; (<span class="t">String</span>) row.get(<span class="s">"name"</span>))
                 .toList();
     }
 }</code></pre>
@@ -748,6 +749,9 @@
       <div class="g reveal"><span class="tagk warn">truncate</span><div>
         <p><strong><code>WRITE_TRUNCATE</code> is ignored.</strong> <code>query(sql, destination)</code> appends to the destination table instead of replacing it, so a second query into the same table returns the rows of both.</p>
         <p>Use a distinct destination table per test, or drop it before each test.</p>
+      </div></div>
+      <div class="g reveal"><span class="tagk warn">time</span><div>
+        <p><strong><code>TIME</code> fails in Avro.</strong> The emulator cannot send a <code>TIME</code> column in Avro (<code>cannot transform to binary time-micros</code>).</p>
       </div></div>
     </div>
     <figure class="diagram reveal" style="margin-top:20px">

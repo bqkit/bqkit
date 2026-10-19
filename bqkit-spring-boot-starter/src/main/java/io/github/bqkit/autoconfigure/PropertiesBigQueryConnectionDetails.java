@@ -13,16 +13,16 @@ import java.util.function.Supplier;
 final class PropertiesBigQueryConnectionDetails implements BigQueryConnectionDetails {
 
     private final BqkitProperties properties;
-    private final Supplier<Credentials> credentialsFactory;
+    private final Supplier<Credentials> credentialsSupplier;
     private Credentials credentials;
 
     PropertiesBigQueryConnectionDetails(BqkitProperties properties) {
         this(properties, () -> CredentialsFactory.create(properties.impersonateServiceAccount()));
     }
 
-    PropertiesBigQueryConnectionDetails(BqkitProperties properties, Supplier<Credentials> credentialsFactory) {
+    PropertiesBigQueryConnectionDetails(BqkitProperties properties, Supplier<Credentials> credentialsSupplier) {
         this.properties = properties;
-        this.credentialsFactory = credentialsFactory;
+        this.credentialsSupplier = credentialsSupplier;
     }
 
     @Override
@@ -32,7 +32,7 @@ final class PropertiesBigQueryConnectionDetails implements BigQueryConnectionDet
 
     private synchronized Credentials credentials() {
         if (Objects.isNull(credentials)) {
-            credentials = credentialsFactory.get();
+            credentials = credentialsSupplier.get();
         }
         return credentials;
     }

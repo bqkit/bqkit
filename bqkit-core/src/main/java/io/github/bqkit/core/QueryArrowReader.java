@@ -1,5 +1,6 @@
 package io.github.bqkit.core;
 
+import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
@@ -46,7 +47,10 @@ public class QueryArrowReader {
         readTable(QueryJobs.run(bigQuery, QueryJobs.into(sql, destination)), batches);
     }
 
-    /** Hands each record batch to {@code batches}; the batch is released once the consumer returns. */
+    /**
+     * Hands each non-empty record batch to {@code batches}; the batch is released once the consumer returns.
+     * Dictionary-encoded batches are rejected.
+     */
     public void readTable(TableId table, Consumer<VectorSchemaRoot> batches) {
         ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.ARROW);
         try (BufferAllocator allocator = new RootAllocator();
@@ -54,8 +58,13 @@ public class QueryArrowReader {
             VectorLoader loader = new VectorLoader(root);
             for (ReadStream stream : session.getStreamsList()) {
                 ReadRowsRequest request = ReadRowsRequest.newBuilder().setReadStream(stream.getName()).build();
-                for (ReadRowsResponse response : readClient.readRowsCallable().call(request)) {
-                    decode(response, allocator, loader, root, batches);
+                ServerStream<ReadRowsResponse> responses = readClient.readRowsCallable().call(request);
+                try {
+                    for (ReadRowsResponse response : responses) {
+                        decode(response, allocator, loader, root, batches);
+                    }
+                } finally {
+                    responses.cancel();
                 }
             }
         } catch (IOException e) {
@@ -69,14 +78,20 @@ public class QueryArrowReader {
         MessageChannelReader messages = new MessageChannelReader(
                 channel(response.getArrowRecordBatch().getSerializedRecordBatch().toByteArray()), allocator);
         for (MessageResult message = messages.readNext(); Objects.nonNull(message); message = messages.readNext()) {
-            if (message.getMessage().headerType() != MessageHeader.RecordBatch) {
+            byte header = message.getMessage().headerType();
+            if (header == MessageHeader.DictionaryBatch) {
+                throw new IllegalStateException("Arrow dictionary batches are not supported");
+            }
+            if (header != MessageHeader.RecordBatch) {
                 continue;
             }
             try (ArrowRecordBatch batch = MessageSerializer.deserializeRecordBatch(
                     message.getMessage(), message.getBodyBuffer())) {
                 loader.load(batch);
             }
-            batches.accept(root);
+            if (root.getRowCount() > 0) {
+                batches.accept(root);
+            }
             root.clear();
         }
     }

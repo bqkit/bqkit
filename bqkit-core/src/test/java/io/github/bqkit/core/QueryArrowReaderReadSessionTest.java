@@ -1,6 +1,7 @@
 package io.github.bqkit.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -74,6 +75,46 @@ class QueryArrowReaderReadSessionTest {
         });
 
         assertThat(names).containsExactly("apple", "banana", "cherry");
+    }
+
+    @Test
+    void cancels_the_stream_when_the_consumer_throws() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        ServerStream<ReadRowsResponse> responses = stream(schema,
+                rows(ArrowMessages.recordBatch(schema, "apple")), rows(ArrowMessages.recordBatch(schema, "banana")));
+
+        assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                batch -> {
+                    throw new IllegalStateException("consumer failed");
+                }))
+                .hasMessage("consumer failed");
+
+        verify(responses).cancel();
+    }
+
+    @Test
+    void rejects_dictionary_batches() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        stream(schema, rows(ArrowMessages.dictionaryBatch(schema, "apple")));
+
+        assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                batch -> { }))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("dictionary");
+    }
+
+    @SuppressWarnings("unchecked")
+    private ServerStream<ReadRowsResponse> stream(Schema schema, ReadRowsResponse... rows) {
+        when(readClient.createReadSession(any(CreateReadSessionRequest.class))).thenReturn(ReadSession.newBuilder()
+                .setArrowSchema(ArrowSchema.newBuilder().setSerializedSchema(ArrowMessages.schema(schema)))
+                .addStreams(ReadStream.newBuilder().setName("stream-0"))
+                .build());
+        ServerStreamingCallable<ReadRowsRequest, ReadRowsResponse> readRows = mock(ServerStreamingCallable.class);
+        ServerStream<ReadRowsResponse> responses = mock(ServerStream.class);
+        when(readClient.readRowsCallable()).thenReturn(readRows);
+        when(readRows.call(any(ReadRowsRequest.class))).thenReturn(responses);
+        when(responses.iterator()).thenReturn(List.of(rows).iterator());
+        return responses;
     }
 
     private static ReadRowsResponse rows(ByteString recordBatch) {

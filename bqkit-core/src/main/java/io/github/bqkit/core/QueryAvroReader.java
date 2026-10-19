@@ -1,5 +1,6 @@
 package io.github.bqkit.core;
 
+import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
@@ -45,8 +46,13 @@ public class QueryAvroReader {
         List<GenericRecord> records = new ArrayList<>();
         for (ReadStream stream : session.getStreamsList()) {
             ReadRowsRequest request = ReadRowsRequest.newBuilder().setReadStream(stream.getName()).build();
-            for (ReadRowsResponse response : readClient.readRowsCallable().call(request)) {
-                decode(response, datumReader, records);
+            ServerStream<ReadRowsResponse> responses = readClient.readRowsCallable().call(request);
+            try {
+                for (ReadRowsResponse response : responses) {
+                    decode(response, datumReader, records);
+                }
+            } finally {
+                responses.cancel();
             }
         }
         return records;

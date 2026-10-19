@@ -295,7 +295,7 @@
   <div class="wrap hero-grid">
     <div>
       <div class="eyebrow">BigQuery for Spring Boot</div>
-      <h1 class="title">Read BigQuery in Avro,<br>test it on an emulator.</h1>
+      <h1 class="title">Read BigQuery in Avro or Arrow,<br>test it on an emulator.</h1>
       <p class="lede">Spring Boot integration for Google BigQuery, built around the Storage Read API, with an emulator you can test against.</p>
       <div class="pills">
         <span class="pill">Java 21</span>
@@ -324,7 +324,7 @@
     <div class="sec-head reveal">
       <div class="eyebrow">Why bqkit</div>
       <h2>Skip the REST pagination, stream the rows.</h2>
-      <p>Reading a large query result through the BigQuery REST API is slow. The Storage Read API streams rows in Avro over gRPC instead. bqkit wires that path into Spring Boot.</p>
+      <p>Reading a large query result through the BigQuery REST API is slow. The Storage Read API streams rows in Avro or Arrow over gRPC instead. bqkit wires that path into Spring Boot.</p>
     </div>
     <div class="features">
       <div class="card reveal">
@@ -356,10 +356,10 @@
     <div class="sec-head reveal">
       <div class="eyebrow">The read path</div>
       <h2>One call, three steps.</h2>
-      <p>One call to <code>query(sql, destination)</code> runs a query job, lands the result in a table, then streams that table in Avro.</p>
+      <p>One call to <code>query(sql, destination)</code> runs a query job, lands the result in a table, then streams that table in Avro (<code>QueryAvroReader</code>) or in Arrow (<code>QueryArrowReader</code>).</p>
     </div>
     <figure class="diagram reveal">
-      <svg viewBox="0 0 960 300" role="img" aria-label="Read path: the application calls QueryAvroReader, which runs a query job into a destination table, opens a Storage Read session on it and decodes the Avro stream into GenericRecord rows.">
+      <svg viewBox="0 0 960 300" role="img" aria-label="Read path: the application calls QueryAvroReader or QueryArrowReader, which runs a query job into a destination table, opens a Storage Read session on it and decodes the stream into GenericRecord rows or Arrow record batches.">
         <defs>
           <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
             <path d="M0 0L10 5L0 10z" fill="var(--muted)"/>
@@ -374,7 +374,7 @@
 
         <rect class="box f-accent" x="14" y="176" width="230" height="84" rx="12"/>
         <text class="lbl" x="129" y="212" text-anchor="middle">QueryAvroReader</text>
-        <text class="sub" x="129" y="236" text-anchor="middle">bqkit-core</text>
+        <text class="sub" x="129" y="236" text-anchor="middle">or QueryArrowReader</text>
         <path class="arrow" d="M129 126 V172"/>
 
         <rect class="box f-node" x="350" y="56" width="240" height="72" rx="12"/>
@@ -387,11 +387,11 @@
 
         <rect class="box f-accent" x="680" y="190" width="240" height="72" rx="12"/>
         <text class="lbl" x="800" y="222" text-anchor="middle">Storage Read session</text>
-        <text class="sub" x="800" y="244" text-anchor="middle">gRPC · Avro stream</text>
+        <text class="sub" x="800" y="244" text-anchor="middle">gRPC · Avro or Arrow</text>
 
         <rect class="box f-ok" x="350" y="190" width="240" height="72" rx="12"/>
         <text class="lbl" x="470" y="222" text-anchor="middle">List&lt;GenericRecord&gt;</text>
-        <text class="sub" x="470" y="244" text-anchor="middle">decoded rows</text>
+        <text class="sub" x="470" y="244" text-anchor="middle">or Arrow batches</text>
 
         <path class="arrow" d="M246 200 C 300 200, 300 92, 346 92"/>
         <path class="arrow" d="M592 92 H676"/>
@@ -403,7 +403,7 @@
         <circle cx="634" cy="72" r="12" fill="var(--accent)"/><text class="num" x="634" y="76.5" text-anchor="middle">2</text>
         <circle cx="636" cy="206" r="12" fill="var(--accent)"/><text class="num" x="636" y="210.5" text-anchor="middle">3</text>
       </svg>
-      <figcaption>1. Run the query · 2. Results land in the destination table · 3. Stream the table in Avro and decode it</figcaption>
+      <figcaption>1. Run the query · 2. Results land in the destination table · 3. Stream the table in Avro or Arrow and decode it</figcaption>
     </figure>
   </div>
 </section>

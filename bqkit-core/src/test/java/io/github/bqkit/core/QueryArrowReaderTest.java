@@ -3,7 +3,12 @@ package io.github.bqkit.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.Field;
+import com.google.cloud.bigquery.Schema;
+import com.google.cloud.bigquery.StandardSQLTypeName;
+import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.TableInfo;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +72,18 @@ class QueryArrowReaderTest {
                 batch -> names.addAll(names(batch)));
 
         assertThat(names).containsExactlyInAnyOrder("banana", "cherry");
+    }
+
+    @Test
+    void does_not_call_the_consumer_for_an_empty_table() {
+        TableId empty = TableId.of("shop", "no_products");
+        bigQuery.create(TableInfo.of(empty, StandardTableDefinition.of(Schema.of(
+                Field.of("name", StandardSQLTypeName.STRING)))));
+        List<Integer> rowCounts = new ArrayList<>();
+
+        reader.readTable(empty, batch -> rowCounts.add(batch.getRowCount()));
+
+        assertThat(rowCounts).isEmpty();
     }
 
     private static List<String> names(VectorSchemaRoot batch) {

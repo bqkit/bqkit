@@ -15,6 +15,7 @@ import org.apache.arrow.vector.VarCharVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.VectorUnloader;
 import org.apache.arrow.vector.ipc.WriteChannel;
+import org.apache.arrow.vector.ipc.message.ArrowDictionaryBatch;
 import org.apache.arrow.vector.ipc.message.ArrowRecordBatch;
 import org.apache.arrow.vector.ipc.message.MessageSerializer;
 import org.apache.arrow.vector.types.pojo.Schema;
@@ -32,6 +33,14 @@ final class ArrowMessages {
     }
 
     static ByteString recordBatch(Schema schema, String... names) {
+        return serialize(schema, false, names);
+    }
+
+    static ByteString dictionaryBatch(Schema schema, String... names) {
+        return serialize(schema, true, names);
+    }
+
+    private static ByteString serialize(Schema schema, boolean dictionary, String... names) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (BufferAllocator allocator = new RootAllocator();
              VectorSchemaRoot root = VectorSchemaRoot.create(schema, allocator)) {
@@ -40,8 +49,15 @@ final class ArrowMessages {
                 name.setSafe(i, names[i].getBytes(StandardCharsets.UTF_8));
             }
             root.setRowCount(names.length);
+            WriteChannel channel = new WriteChannel(Channels.newChannel(out));
             try (ArrowRecordBatch batch = new VectorUnloader(root).getRecordBatch()) {
-                MessageSerializer.serialize(new WriteChannel(Channels.newChannel(out)), batch);
+                if (dictionary) {
+                    try (ArrowDictionaryBatch dictionaryBatch = new ArrowDictionaryBatch(0, batch, false)) {
+                        MessageSerializer.serialize(channel, dictionaryBatch);
+                    }
+                } else {
+                    MessageSerializer.serialize(channel, batch);
+                }
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

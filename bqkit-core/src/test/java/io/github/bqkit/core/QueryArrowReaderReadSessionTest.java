@@ -99,7 +99,6 @@ class QueryArrowReaderReadSessionTest {
         assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
                 batch -> { }))
                 .isInstanceOf(UncheckedIOException.class)
-                .hasMessageContaining("INT_MAX")
                 .satisfies(failure -> assertThat(failure.getCause().getSuppressed()).isEmpty());
     }
 

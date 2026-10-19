@@ -1,6 +1,13 @@
 # bqkit
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.bqkit/bqkit-spring-boot-starter)](https://central.sonatype.com/namespace/io.github.bqkit)
+[![CI Build](https://github.com/bqkit/bqkit/actions/workflows/ci.yml/badge.svg?branch=release/1.x)](https://github.com/bqkit/bqkit/actions/workflows/ci.yml?query=branch%3Arelease%2F1.x)
+[![Qodana](https://github.com/bqkit/bqkit/actions/workflows/qodana_code_quality.yml/badge.svg?branch=release/1.x)](https://github.com/bqkit/bqkit/actions/workflows/qodana_code_quality.yml?query=branch%3Arelease%2F1.x)
+[![codecov](https://codecov.io/gh/bqkit/bqkit/branch/release%2F1.x/graph/badge.svg)](https://codecov.io/gh/bqkit/bqkit/tree/release%2F1.x)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.org/projects/jdk/21/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-green.svg)](https://spring.io/projects/spring-boot)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.bqkit/bqkit-spring-boot-starter.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.bqkit/bqkit-spring-boot-starter)
+[![Website](https://img.shields.io/badge/Website-bqkit.github.io-0ea5e9.svg)](https://bqkit.github.io/bqkit/)
 
 Spring Boot integration for Google BigQuery, built around the Storage Read API:
 

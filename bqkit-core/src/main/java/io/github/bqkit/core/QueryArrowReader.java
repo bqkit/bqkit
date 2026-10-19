@@ -110,7 +110,7 @@ public class QueryArrowReader {
     private static ArrowRecordBatch deserialize(MessageResult message, ArrowBuf body) throws IOException {
         try {
             return MessageSerializer.deserializeRecordBatch(message.getMessage(), body);
-        } catch (IOException | RuntimeException failure) {
+        } catch (IOException | RuntimeException | Error failure) {
             release(body);
             throw failure;
         }

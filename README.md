@@ -64,6 +64,10 @@ List<GenericRecord> rows = reader.query(
 `query(sql, destination)` truncates the destination table before writing. `query(sql)` reads the
 anonymous result table that BigQuery creates for the job. `readTable(table)` reads an existing table.
 
+Concurrent calls into the same destination table race: each one truncates the table, so a call can
+read the rows of another, or none. Give each call its own destination table, or use `query(sql)`, whose
+anonymous result table belongs to its job.
+
 `query(configuration)` runs a `QueryJobConfiguration` as is, for query parameters, `maximumBytesBilled`,
 labels or location. It sets no write disposition: set the destination and `WRITE_TRUNCATE` yourself if you
 need them.
@@ -248,6 +252,8 @@ public class ProductRepository {
     }
 }
 ```
+
+`RESULT` is shared by every call: this repository suits a single caller at a time, such as a batch.
 
 The test seeds the emulator with the `BigQuery` bean, calls the repository, then checks the result:
 

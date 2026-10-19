@@ -22,7 +22,10 @@ import com.google.cloud.bigquery.storage.v1.ReadSession;
 import com.google.cloud.bigquery.storage.v1.ReadStream;
 import com.google.protobuf.ByteString;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -73,5 +76,51 @@ class QueryAvroReaderReadSessionTest {
                 .isInstanceOf(UncheckedIOException.class);
 
         verify(responses).cancel();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void hands_each_row_to_the_consumer_before_reading_the_next_response() {
+        when(readClient.createReadSession(any(CreateReadSessionRequest.class))).thenReturn(ReadSession.newBuilder()
+                .setAvroSchema(AvroSchema.newBuilder().setSchema(NAME_RECORD))
+                .addStreams(ReadStream.newBuilder().setName("stream-0"))
+                .build());
+        ServerStreamingCallable<ReadRowsRequest, ReadRowsResponse> readRows = mock(ServerStreamingCallable.class);
+        ServerStream<ReadRowsResponse> responses = mock(ServerStream.class);
+        when(readClient.readRowsCallable()).thenReturn(readRows);
+        when(readRows.call(any(ReadRowsRequest.class))).thenReturn(responses);
+        Iterator<ReadRowsResponse> rows = List.of(row("apple"), row("banana")).iterator();
+        AtomicInteger pulled = new AtomicInteger();
+        when(responses.iterator()).thenReturn(new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return rows.hasNext();
+            }
+
+            @Override
+            public ReadRowsResponse next() {
+                pulled.incrementAndGet();
+                return rows.next();
+            }
+        });
+
+        assertThatThrownBy(() -> new QueryAvroReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                row -> {
+                    throw new IllegalStateException("stop at " + row.get("name"));
+                }))
+                .hasMessage("stop at apple");
+
+        assertThat(pulled).hasValue(1);
+        verify(responses).cancel();
+    }
+
+    private static ReadRowsResponse row(String name) {
+        byte[] bytes = name.getBytes(StandardCharsets.UTF_8);
+        byte[] encoded = new byte[bytes.length + 1];
+        encoded[0] = (byte) (bytes.length * 2);
+        System.arraycopy(bytes, 0, encoded, 1, bytes.length);
+        return ReadRowsResponse.newBuilder()
+                .setAvroRows(AvroRows.newBuilder().setSerializedBinaryRows(ByteString.copyFrom(encoded)))
+                .build();
     }
 }

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
@@ -39,32 +40,47 @@ public class QueryAvroReader {
         return readTable(QueryJobs.run(bigQuery, QueryJobs.into(sql, destination)));
     }
 
+    public void query(String sql, Consumer<GenericRecord> rows) {
+        readTable(QueryJobs.run(bigQuery, QueryJobs.anonymous(sql)), rows);
+    }
+
+    /** Writes the result to {@code destination} (truncated first) instead of the anonymous result table. */
+    public void query(String sql, TableId destination, Consumer<GenericRecord> rows) {
+        readTable(QueryJobs.run(bigQuery, QueryJobs.into(sql, destination)), rows);
+    }
+
+    /** Keeps every row in memory: stream large tables with {@link #readTable(TableId, Consumer)}. */
     public List<GenericRecord> readTable(TableId table) {
+        List<GenericRecord> records = new ArrayList<>();
+        readTable(table, records::add);
+        return records;
+    }
+
+    /** Hands each row to {@code rows} as it is decoded, without keeping it. */
+    public void readTable(TableId table, Consumer<GenericRecord> rows) {
         ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.AVRO);
         Schema schema = new Schema.Parser().parse(session.getAvroSchema().getSchema());
         GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema);
-        List<GenericRecord> records = new ArrayList<>();
         for (ReadStream stream : session.getStreamsList()) {
             ReadRowsRequest request = ReadRowsRequest.newBuilder().setReadStream(stream.getName()).build();
             ServerStream<ReadRowsResponse> responses = readClient.readRowsCallable().call(request);
             try {
                 for (ReadRowsResponse response : responses) {
-                    decode(response, datumReader, records);
+                    decode(response, datumReader, rows);
                 }
             } finally {
                 responses.cancel();
             }
         }
-        return records;
     }
 
     private static void decode(ReadRowsResponse response, GenericDatumReader<GenericRecord> datumReader,
-                               List<GenericRecord> into) {
+                               Consumer<GenericRecord> rows) {
         BinaryDecoder decoder = DecoderFactory.get()
                 .binaryDecoder(response.getAvroRows().getSerializedBinaryRows().toByteArray(), null);
         try {
             while (!decoder.isEnd()) {
-                into.add(datumReader.read(null, decoder));
+                rows.accept(datumReader.read(null, decoder));
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

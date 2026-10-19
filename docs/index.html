@@ -370,7 +370,7 @@
   const pageMajor = (location.pathname.match(/\/(\d+)\.x\//) || [])[1];
 
   if (pageMajor) {
-    fetch("../versions.json")
+    fetch("../versions.json", { cache: "no-cache" })
       .then(response => response.ok ? response.json() : [])
       .then(majors => {
         if (majors.length === 0) {

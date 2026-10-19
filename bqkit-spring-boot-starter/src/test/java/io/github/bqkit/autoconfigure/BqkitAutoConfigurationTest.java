@@ -7,6 +7,7 @@ import com.google.cloud.NoCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import io.github.bqkit.core.BigQueryConnection;
+import io.github.bqkit.core.QueryArrowReader;
 import io.github.bqkit.core.QueryAvroReader;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -42,7 +43,8 @@ class BqkitAutoConfigurationTest {
                 .run(context -> {
                     assertThat(context).hasSingleBean(BigQueryConnectionDetails.class)
                             .hasSingleBean(BigQueryReadClient.class)
-                            .hasSingleBean(QueryAvroReader.class);
+                            .hasSingleBean(QueryAvroReader.class)
+                            .hasSingleBean(QueryArrowReader.class);
                     BigQuery bigQuery = context.getBean(BigQuery.class);
                     assertThat(bigQuery.getOptions().getProjectId()).isEqualTo("testproject");
                     assertThat(bigQuery.getOptions().getHost()).isEqualTo("http://localhost:9050");
@@ -55,5 +57,16 @@ class BqkitAutoConfigurationTest {
         runner.withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
                 .withBean(BigQuery.class, () -> custom)
                 .run(context -> assertThat(context.getBean(BigQuery.class)).isSameAs(custom));
+    }
+
+    @Test
+    void arrow_reader_backs_off_without_touching_the_avro_reader() {
+        QueryArrowReader custom = mock(QueryArrowReader.class);
+        runner.withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+                .withBean(QueryArrowReader.class, () -> custom)
+                .run(context -> {
+                    assertThat(context.getBean(QueryArrowReader.class)).isSameAs(custom);
+                    assertThat(context).hasSingleBean(QueryAvroReader.class);
+                });
     }
 }

@@ -1,12 +1,9 @@
 package io.github.bqkit.core;
 
+import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.Job;
-import com.google.cloud.bigquery.JobInfo;
-import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
-import com.google.cloud.bigquery.storage.v1.CreateReadSessionRequest;
 import com.google.cloud.bigquery.storage.v1.DataFormat;
 import com.google.cloud.bigquery.storage.v1.ReadRowsRequest;
 import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
@@ -16,7 +13,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
@@ -35,54 +31,28 @@ public class QueryAvroReader {
     }
 
     public List<GenericRecord> query(String sql) {
-        return run(QueryJobConfiguration.newBuilder(sql).build());
+        return readTable(QueryJobs.run(bigQuery, QueryJobs.anonymous(sql)));
     }
 
     /** Writes the result to {@code destination} (truncated first) instead of the anonymous result table. */
     public List<GenericRecord> query(String sql, TableId destination) {
-        return run(QueryJobConfiguration.newBuilder(sql)
-                .setDestinationTable(destination)
-                .setWriteDisposition(JobInfo.WriteDisposition.WRITE_TRUNCATE)
-                .build());
-    }
-
-    private List<GenericRecord> run(QueryJobConfiguration configuration) {
-        try {
-            Job job = bigQuery.create(JobInfo.of(configuration)).waitFor();
-            if (Objects.isNull(job)) {
-                throw new IllegalStateException("BigQuery job not found");
-            }
-            if (Objects.nonNull(job.getStatus().getError())) {
-                throw new IllegalStateException("BigQuery job failed: " + job.getStatus().getError());
-            }
-            TableId destination = ((QueryJobConfiguration) job.getConfiguration()).getDestinationTable();
-            if (Objects.isNull(destination)) {
-                throw new IllegalStateException("BigQuery job has no destination table");
-            }
-            return readTable(destination);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException(e);
-        }
+        return readTable(QueryJobs.run(bigQuery, QueryJobs.into(sql, destination)));
     }
 
     public List<GenericRecord> readTable(TableId table) {
-        String project = Objects.requireNonNullElse(table.getProject(), bigQuery.getOptions().getProjectId());
-        ReadSession session = readClient.createReadSession(CreateReadSessionRequest.newBuilder()
-                .setParent("projects/" + project)
-                .setReadSession(ReadSession.newBuilder()
-                        .setTable("projects/%s/datasets/%s/tables/%s"
-                                .formatted(project, table.getDataset(), table.getTable()))
-                        .setDataFormat(DataFormat.AVRO))
-                .setMaxStreamCount(1)
-                .build());
+        ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.AVRO);
         Schema schema = new Schema.Parser().parse(session.getAvroSchema().getSchema());
         GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema);
         List<GenericRecord> records = new ArrayList<>();
         for (ReadStream stream : session.getStreamsList()) {
             ReadRowsRequest request = ReadRowsRequest.newBuilder().setReadStream(stream.getName()).build();
-            for (ReadRowsResponse response : readClient.readRowsCallable().call(request)) {
-                decode(response, datumReader, records);
+            ServerStream<ReadRowsResponse> responses = readClient.readRowsCallable().call(request);
+            try {
+                for (ReadRowsResponse response : responses) {
+                    decode(response, datumReader, records);
+                }
+            } finally {
+                responses.cancel();
             }
         }
         return records;

@@ -28,6 +28,13 @@ jobs:
       - name: Build and test
         run: mvn -B verify
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: '**/target/site/jacoco/jacoco.xml'
+          fail_ci_if_error: false
+
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: always()

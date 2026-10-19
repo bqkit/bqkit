@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
     <Match>
-        <Class name="io.github.bqkit.core.QueryAvroReader"/>
+        <Class name="~io\.github\.bqkit\.core\.Query(Avro|Arrow)Reader"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 </FindBugsFilter>

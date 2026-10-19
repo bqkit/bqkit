@@ -116,6 +116,9 @@
   .themebtn { background: var(--surface); border: 1px solid var(--line); color: var(--muted);
     width: 36px; height: 34px; border-radius: 9px; cursor: pointer; font-size: 15px; display: grid; place-items: center; }
   .themebtn:hover { color: var(--ink); }
+  .vsel { font: 600 13px var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+    height: 34px; padding: 0 10px; border-radius: 9px; cursor: pointer; }
+  .vsel:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
   @media (max-width: 860px) { .bar nav a.nl { display: none; } }
 
   /* ---- hero ---- */
@@ -277,6 +280,7 @@
       <a class="nl" href="#usage">Usage</a>
       <a class="nl" href="#testing">Testing</a>
       <a class="nl" href="#emulator-limits">Limits</a>
+      <select class="vsel" id="versionSelect" aria-label="Documentation version" hidden></select>
       <a class="ghbtn" href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.11.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         GitHub
@@ -793,6 +797,23 @@
     }, { threshold: .12 });
     document.querySelectorAll(".reveal").forEach(function (e) { io.observe(e); });
   })();
+  const pageMajor = (location.pathname.match(/\/(\d+)\.x\//) || [])[1];
+
+  if (pageMajor) {
+    fetch("../versions.json")
+      .then(response => response.ok ? response.json() : [])
+      .then(majors => {
+        if (majors.length === 0) {
+          return;
+        }
+        const select = document.getElementById("versionSelect");
+        majors.slice().reverse().forEach(major => select.add(new Option(major, major, false, major === pageMajor + ".x")));
+        select.addEventListener("change", () => { location.href = "../" + select.value + "/" + location.hash; });
+        select.hidden = false;
+      })
+      .catch(() => {});
+  }
+
   fetch("https://api.github.com/repos/bqkit/bqkit/tags?per_page=100")
     .then(response => response.ok ? response.json() : [])
     .then(tags => {
@@ -800,6 +821,7 @@
         .map(tag => tag.name)
         .filter(name => /^v\d+\.\d+\.\d+$/.test(name))
         .map(name => name.slice(1).split(".").map(Number))
+        .filter(version => !pageMajor || version[0] === Number(pageMajor))
         .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
       if (versions.length === 0) {
         return;

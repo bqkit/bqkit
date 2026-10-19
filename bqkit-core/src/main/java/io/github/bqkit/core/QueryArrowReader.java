@@ -15,6 +15,7 @@ import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.function.Consumer;
 import org.apache.arrow.flatbuf.MessageHeader;
+import org.apache.arrow.memory.ArrowBuf;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.VectorLoader;
@@ -77,17 +78,22 @@ public class QueryArrowReader {
         }
     }
 
-    /** Skips the schema and end-of-stream messages that some servers, such as the emulator, add around the batch. */
+    /**
+     * Skips the schema and end-of-stream messages that some servers, such as the emulator, add around the batch,
+     * releasing the body of any message that is not a record batch.
+     */
     private static void decode(ReadRowsResponse response, BufferAllocator allocator, VectorLoader loader,
                                VectorSchemaRoot root, Consumer<VectorSchemaRoot> batches) throws IOException {
         MessageChannelReader messages = new MessageChannelReader(
                 channel(response.getArrowRecordBatch().getSerializedRecordBatch()), allocator);
         for (MessageResult message = messages.readNext(); Objects.nonNull(message); message = messages.readNext()) {
             byte header = message.getMessage().headerType();
-            if (header == MessageHeader.DictionaryBatch) {
-                throw new IllegalStateException("Arrow dictionary batches are not supported");
-            }
             if (header != MessageHeader.RecordBatch) {
+                try (ArrowBuf body = message.getBodyBuffer()) {
+                    if (header == MessageHeader.DictionaryBatch) {
+                        throw new IllegalStateException("Arrow dictionary batches are not supported");
+                    }
+                }
                 continue;
             }
             try (ArrowRecordBatch batch = MessageSerializer.deserializeRecordBatch(

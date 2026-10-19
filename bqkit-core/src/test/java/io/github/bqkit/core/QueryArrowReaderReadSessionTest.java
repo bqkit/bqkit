@@ -116,7 +116,8 @@ class QueryArrowReaderReadSessionTest {
         assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
                 batch -> { }))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("dictionary");
+                .hasMessageContaining("dictionary")
+                .satisfies(failure -> assertThat(failure.getSuppressed()).isEmpty());
     }
 
     @SuppressWarnings("unchecked")

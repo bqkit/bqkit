@@ -465,7 +465,33 @@
       <div class="mod reveal"><code>query(sql, destination)</code><span>Truncates the destination table before writing, then reads it.</span></div>
       <div class="mod reveal"><code>query(sql)</code><span>Reads the anonymous result table that BigQuery creates for the job.</span></div>
       <div class="mod reveal"><code>readTable(table)</code><span>Reads an existing table.</span></div>
+      <div class="mod reveal"><code>query(sql, destination, rows)</code><span>Same as <code>query(sql, destination)</code>, row by row to the callback.</span></div>
+      <div class="mod reveal"><code>query(sql, rows)</code><span>Same as <code>query(sql)</code>, row by row to the callback.</span></div>
+      <div class="mod reveal"><code>readTable(table, rows)</code><span>Same as <code>readTable(table)</code>, row by row to the callback.</span></div>
     </div>
+
+    <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">Avro or Arrow</h3>
+    <div class="prose"><p>The starter declares both readers: inject the one that fits the use case. <code>QueryAvroReader</code> reads row by row: it returns the rows as a <code>List&lt;GenericRecord&gt;</code>, which holds the whole result in memory, or hands each row to a callback, for large results. <code>QueryArrowReader</code> hands the result to a callback, one columnar record batch at a time: to work on columns.</p></div>
+    <div class="prose"><p><code>QueryAvroReader</code> streams the rows with <code>query(sql, rows)</code>, <code>query(sql, destination, rows)</code> or <code>readTable(table, rows)</code>:</p></div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — stream Avro rows
+        <button class="copy" data-copy="avro-stream">Copy</button></div>
+<pre id="avro-stream"><code>reader.query(<span class="s">"SELECT name FROM `my-project.shop.products`"</span>, <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"query_result"</span>),
+        row -&gt; <span class="t">System</span>.out.println(row.get(<span class="s">"name"</span>)));</code></pre>
+    </div>
+    <div class="prose"><p>The next response of the stream is only requested once every row of the current one has gone through the callback, so a slow callback slows the read down instead of filling the memory. If a row cannot be decoded or the callback throws, the read stops and the stream is cancelled: the rows before it have already been handed to the callback.</p></div>
+    <div class="prose"><p><code>QueryArrowReader</code> takes the same arguments, and calls the callback once per record batch:</p></div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — stream Arrow batches
+        <button class="copy" data-copy="arrow-stream">Copy</button></div>
+<pre id="arrow-stream"><code>reader.query(<span class="s">"SELECT name, price FROM `my-project.shop.products`"</span>, <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"query_result"</span>), batch -&gt; {
+    <span class="t">VarCharVector</span> name = (<span class="t">VarCharVector</span>) batch.getVector(<span class="s">"name"</span>);
+    <span class="k">for</span> (<span class="k">int</span> i = 0; i &lt; batch.getRowCount(); i++) {
+        <span class="t">System</span>.out.println(name.getObject(i));
+    }
+});</code></pre>
+    </div>
+    <div class="prose"><p>The batch is released once the callback returns: copy what you keep. Arrow needs access to <code>java.nio</code> on Java 21: start the application, and the tests, with <code>--add-opens=java.base/java.nio=ALL-UNNAMED</code>. Without it, the first read fails with <code>Failed to initialize MemoryUtil</code>.</p></div>
     <div class="prose"><p>Every bean backs off when the application defines its own. Defining a <code>BigQueryConnectionDetails</code> bean replaces the connection built from the properties.</p></div>
 
     <div class="prose"><p>The starter ships the configuration metadata of the <code>bqkit.*</code> keys: your IDE completes and documents them in <code>application.yml</code>.</p></div>

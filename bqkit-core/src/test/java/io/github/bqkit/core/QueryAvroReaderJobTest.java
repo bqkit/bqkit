@@ -21,6 +21,8 @@ import com.google.cloud.bigquery.storage.v1.AvroSchema;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import com.google.cloud.bigquery.storage.v1.CreateReadSessionRequest;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
+import java.util.function.Consumer;
+import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -117,6 +119,43 @@ class QueryAvroReaderJobTest {
         verify(readClient).createReadSession(request.capture());
         assertThat(request.getValue().getReadSession().getTable())
                 .isEqualTo("projects/my-project/datasets/_anon/tables/anon_result");
+    }
+
+    @Test
+    void streams_the_anonymous_table_the_job_wrote_to_when_no_destination_is_given() {
+        TableId anonymous = TableId.of("my-project", "_anon", "anon_result");
+        doReturn(QueryJobConfiguration.newBuilder("SELECT 1").setDestinationTable(anonymous).build())
+                .when(completed).getConfiguration();
+
+        reader.query("SELECT 1", row -> { });
+
+        ArgumentCaptor<JobInfo> submitted = ArgumentCaptor.forClass(JobInfo.class);
+        verify(bigQuery).create(submitted.capture());
+        QueryJobConfiguration configuration = submitted.getValue().getConfiguration();
+        assertThat(configuration.getQuery()).isEqualTo("SELECT 1");
+        assertThat(configuration.getDestinationTable()).isNull();
+        ArgumentCaptor<CreateReadSessionRequest> request = ArgumentCaptor.forClass(CreateReadSessionRequest.class);
+        verify(readClient).createReadSession(request.capture());
+        assertThat(request.getValue().getReadSession().getTable())
+                .isEqualTo("projects/my-project/datasets/_anon/tables/anon_result");
+    }
+
+    @Test
+    void rejects_a_null_consumer_before_running_the_query() {
+        assertThatThrownBy(() -> reader.query("SELECT 1", (Consumer<GenericRecord>) null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> reader.query("SELECT 1", TableId.of("shop", "result"), null))
+                .isInstanceOf(NullPointerException.class);
+
+        verify(bigQuery, never()).create(any(JobInfo.class));
+    }
+
+    @Test
+    void rejects_a_null_consumer_before_opening_a_read_session() {
+        assertThatThrownBy(() -> reader.readTable(TableId.of("shop", "products"), null))
+                .isInstanceOf(NullPointerException.class);
+
+        verify(readClient, never()).createReadSession(any(CreateReadSessionRequest.class));
     }
 
     @Test

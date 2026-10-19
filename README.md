@@ -64,9 +64,24 @@ anonymous result table that BigQuery creates for the job. `readTable(table)` rea
 
 The starter declares both readers: inject the one that fits the use case.
 
-- `QueryAvroReader` returns the rows as a `List<GenericRecord>`: simple, for results that fit in memory.
-- `QueryArrowReader` hands the result to a callback, one columnar record batch at a time: for large
-  results, or to work on columns.
+- `QueryAvroReader` reads row by row. It returns the rows as a `List<GenericRecord>`, which holds the
+  whole result in memory, or hands each row to a callback, for large results.
+- `QueryArrowReader` hands the result to a callback, one columnar record batch at a time: to work on
+  columns.
+
+`QueryAvroReader` streams the rows with `query(sql, rows)`, `query(sql, destination, rows)` or
+`readTable(table, rows)`:
+
+```java
+reader.query("SELECT name FROM `my-project.shop.products`", TableId.of("shop", "query_result"),
+        row -> System.out.println(row.get("name")));
+```
+
+The next response of the stream is only requested once every row of the current one has gone through
+the callback, so a slow callback slows the read down instead of filling the memory. If a row cannot be decoded or the callback throws, the read stops and
+the stream is cancelled: the rows before it have already been handed to the callback.
+
+`QueryArrowReader` takes the same arguments, and calls the callback once per record batch:
 
 ```java
 reader.query("SELECT name, price FROM `my-project.shop.products`", TableId.of("shop", "query_result"), batch -> {

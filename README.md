@@ -64,6 +64,11 @@ List<GenericRecord> rows = reader.query(
 `query(sql, destination)` truncates the destination table before writing. `query(sql)` reads the
 anonymous result table that BigQuery creates for the job. `readTable(table)` reads an existing table.
 
+The read session is created in the connection project (`project-id`), which needs
+`bigquery.readsessions.create` and pays for the read, whatever the project of the table. The connection
+project's service account also needs `bigquery.readsessions.getData` on the table. Without a connection
+project, the project of the table is used.
+
 ### Avro or Arrow
 
 The starter declares both readers: inject the one that fits the use case.

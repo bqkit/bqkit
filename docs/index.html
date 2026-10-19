@@ -473,7 +473,7 @@
     <div class="mods">
       <div class="mod reveal"><code>query(sql, destination)</code><span>Truncates the destination table before writing, then reads it.</span></div>
       <div class="mod reveal"><code>query(sql)</code><span>Reads the anonymous result table that BigQuery creates for the job.</span></div>
-      <div class="mod reveal"><code>readTable(table)</code><span>Reads an existing table.</span></div>
+      <div class="mod reveal"><code>readTable(table)</code><span>Reads an existing table. The read session is created in the connection project, which needs <code>bigquery.readsessions.create</code> and pays for the read, whatever the project of the table.</span></div>
       <div class="mod reveal"><code>query(sql, destination, rows)</code><span>Same as <code>query(sql, destination)</code>, row by row to the callback.</span></div>
       <div class="mod reveal"><code>query(sql, rows)</code><span>Same as <code>query(sql)</code>, row by row to the callback.</span></div>
       <div class="mod reveal"><code>readTable(table, rows)</code><span>Same as <code>readTable(table)</code>, row by row to the callback.</span></div>

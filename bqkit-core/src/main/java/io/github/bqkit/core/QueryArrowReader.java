@@ -2,6 +2,7 @@ package io.github.bqkit.core;
 
 import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import com.google.cloud.bigquery.storage.v1.DataFormat;
@@ -47,6 +48,15 @@ public class QueryArrowReader {
     public void query(String sql, TableId destination, Consumer<VectorSchemaRoot> batches) {
         Objects.requireNonNull(batches, "batches");
         readTable(QueryJobs.run(bigQuery, QueryJobs.into(sql, destination)), batches);
+    }
+
+    /**
+     * Runs {@code configuration} as is, for query parameters, {@code maximumBytesBilled}, labels or location,
+     * then streams the table the job wrote to.
+     */
+    public void query(QueryJobConfiguration configuration, Consumer<VectorSchemaRoot> batches) {
+        Objects.requireNonNull(batches, "batches");
+        readTable(QueryJobs.run(bigQuery, configuration), batches);
     }
 
     /**

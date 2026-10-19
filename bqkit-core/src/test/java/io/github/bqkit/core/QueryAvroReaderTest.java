@@ -13,6 +13,7 @@ import com.google.cloud.bigquery.JobStatus;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.AfterAll;
@@ -63,6 +64,25 @@ class QueryAvroReaderTest {
 
         assertThat(rows).extracting(r -> r.get("name").toString())
                 .containsExactlyInAnyOrder("banana", "cherry");
+    }
+
+    @Test
+    void streams_a_table_row_by_row() {
+        List<String> names = new ArrayList<>();
+
+        reader.readTable(Emulator.PRODUCTS, row -> names.add(row.get("name").toString()));
+
+        assertThat(names).containsExactlyInAnyOrder("apple", "banana", "cherry");
+    }
+
+    @Test
+    void runs_a_query_into_an_explicit_destination_then_streams_it_row_by_row() {
+        List<String> names = new ArrayList<>();
+
+        reader.query("SELECT id, name FROM `" + Emulator.PROJECT_ID + ".shop.products` WHERE price > 1.5",
+                TableId.of("shop", "streamed_result"), row -> names.add(row.get("name").toString()));
+
+        assertThat(names).containsExactlyInAnyOrder("banana", "cherry");
     }
 
     @Test

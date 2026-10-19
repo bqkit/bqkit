@@ -151,8 +151,7 @@ public class BigQueryConfig {
     BigQueryConnection bigQueryConnection(
             @Value("${bigquery.project-id}") String projectId,
             @Value("${bigquery.impersonate-service-account:}") String impersonateServiceAccount) {
-        return new BigQueryConnection(projectId, null, null, false,
-                CredentialsFactory.create(impersonateServiceAccount));
+        return BigQueryConnection.google(projectId, CredentialsFactory.create(impersonateServiceAccount));
     }
 
     @Bean
@@ -172,7 +171,8 @@ public class BigQueryConfig {
 }
 ```
 
-The `null` hosts select the Google endpoints. The `@ServiceConnection` of `bqkit-test` relies on the
+`BigQueryConnection.google(...)` targets the Google endpoints; `BigQueryConnection.emulator(...)` targets an
+emulator. The `@ServiceConnection` of `bqkit-test` relies on the
 starter.
 
 ## Testing

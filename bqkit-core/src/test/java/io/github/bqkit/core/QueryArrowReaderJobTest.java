@@ -36,8 +36,8 @@ class QueryArrowReaderJobTest {
 
     @BeforeEach
     void setUp() throws InterruptedException {
-        when(bigQuery.getOptions()).thenReturn(BigQueryClients.bigQuery(new BigQueryConnection(
-                "my-project", null, null, false, NoCredentials.getInstance())).getOptions());
+        when(bigQuery.getOptions()).thenReturn(BigQueryClients.bigQuery(
+                BigQueryConnection.google("my-project", NoCredentials.getInstance())).getOptions());
         when(bigQuery.create(any(JobInfo.class))).thenReturn(job);
         when(job.waitFor()).thenReturn(completed);
         when(completed.getStatus()).thenReturn(mock(JobStatus.class));

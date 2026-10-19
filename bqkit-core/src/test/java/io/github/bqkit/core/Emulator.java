@@ -1,6 +1,5 @@
 package io.github.bqkit.core;
 
-import com.google.cloud.NoCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.DatasetInfo;
 import com.google.cloud.bigquery.Field;
@@ -33,12 +32,10 @@ final class Emulator {
     }
 
     static BigQueryConnection connection(BigQueryEmulatorContainer container) {
-        return new BigQueryConnection(
+        return BigQueryConnection.emulator(
                 PROJECT_ID,
                 container.getEmulatorHttpEndpoint(),
-                container.getHost() + ":" + container.getMappedPort(GRPC_PORT),
-                true,
-                NoCredentials.getInstance());
+                container.getHost() + ":" + container.getMappedPort(GRPC_PORT));
     }
 
     static void seed(BigQuery bigQuery) {

@@ -27,7 +27,7 @@ final class PropertiesBigQueryConnectionDetails implements BigQueryConnectionDet
 
     @Override
     public BigQueryConnection connection() {
-        return new BigQueryConnection(properties.projectId(), null, null, false, credentials());
+        return BigQueryConnection.google(properties.projectId(), credentials());
     }
 
     private synchronized Credentials credentials() {

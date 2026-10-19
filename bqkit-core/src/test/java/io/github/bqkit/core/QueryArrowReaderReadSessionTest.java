@@ -98,6 +98,18 @@ class QueryArrowReaderReadSessionTest {
     }
 
     @Test
+    void skips_record_batches_without_rows() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        stream(schema, rows(ArrowMessages.recordBatch(schema)), rows(ArrowMessages.recordBatch(schema, "apple")));
+        List<Integer> rowCounts = new ArrayList<>();
+
+        new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                batch -> rowCounts.add(batch.getRowCount()));
+
+        assertThat(rowCounts).containsExactly(1);
+    }
+
+    @Test
     void releases_the_body_of_a_record_batch_that_fails_to_deserialize() {
         Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
         stream(schema, rows(ArrowMessages.oversizedRecordBatch()));

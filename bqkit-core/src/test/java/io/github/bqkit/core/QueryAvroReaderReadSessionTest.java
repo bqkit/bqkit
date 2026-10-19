@@ -21,6 +21,7 @@ import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
 import com.google.cloud.bigquery.storage.v1.ReadStream;
 import com.google.protobuf.ByteString;
+import java.io.UncheckedIOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -69,7 +70,7 @@ class QueryAvroReaderReadSessionTest {
         when(responses.iterator()).thenReturn(List.of(truncated).iterator());
 
         assertThatThrownBy(() -> new QueryAvroReader(bigQuery, readClient).readTable(TableId.of("shop", "products")))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(UncheckedIOException.class);
 
         verify(responses).cancel();
     }

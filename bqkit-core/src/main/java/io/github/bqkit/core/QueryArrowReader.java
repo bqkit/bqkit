@@ -49,6 +49,7 @@ public class QueryArrowReader {
 
     /**
      * Hands each non-empty record batch to {@code batches}; the batch is released once the consumer returns.
+     * The same {@link VectorSchemaRoot} is reused for every batch: do not keep a reference to it, copy what you keep.
      * Dictionary-encoded batches are rejected.
      */
     public void readTable(TableId table, Consumer<VectorSchemaRoot> batches) {

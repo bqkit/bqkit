@@ -11,12 +11,13 @@ jobs:
   release:
     name: Publish to Maven Central
     runs-on: ubuntu-latest
+    env:
+      MAVEN_VERSION: 3.9.16
+      MAVEN_SHA512: 831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6
 
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
@@ -30,16 +31,15 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Set up Maven 3.9.16
+      - name: Set up Maven ${{ env.MAVEN_VERSION }}
         run: |
           cd "$RUNNER_TEMP"
-          base=https://archive.apache.org/dist/maven/maven-3/3.9.16/binaries
-          archive=apache-maven-3.9.16-bin.tar.gz
+          base="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries"
+          archive="apache-maven-${MAVEN_VERSION}-bin.tar.gz"
           curl -fsSLO "$base/$archive"
-          echo "831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6  $archive" \
-            | sha512sum -c -
+          echo "${MAVEN_SHA512}  $archive" | sha512sum -c -
           tar -xzf "$archive"
-          echo "$RUNNER_TEMP/apache-maven-3.9.16/bin" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/apache-maven-${MAVEN_VERSION}/bin" >> "$GITHUB_PATH"
 
       - name: Check the tag
         run: |
@@ -50,12 +50,15 @@ jobs:
           [ "${version%%.*}" = "${revision%%.*}" ] \
             || { echo "Tag ${GITHUB_REF_NAME} does not match major version ${revision%%.*} of the pom"; exit 1; }
           branch="release/${version%%.*}.x"
-          git merge-base --is-ancestor "$GITHUB_SHA" "origin/$branch" \
-            || { echo "Tag ${GITHUB_REF_NAME} is not on ${branch}"; exit 1; }
+          tip=$(git ls-remote origin "refs/heads/${branch}" | cut -f1)
+          [ -n "$tip" ] \
+            || { echo "Branch ${branch} does not exist, create it before tagging ${GITHUB_REF_NAME}"; exit 1; }
+          [ "$(git rev-parse HEAD)" = "$tip" ] \
+            || { echo "Tag ${GITHUB_REF_NAME} is not on the head of ${branch} (${tip}), push the branch before the tag"; exit 1; }
 
       - name: Publish
         run: |
-          mvn -v | grep -q '^Apache Maven 3\.9\.16 '
+          mvn -v | grep -qF "Apache Maven ${MAVEN_VERSION} "
           mvn -B -Prelease -Drevision="${GITHUB_REF_NAME#v}" deploy
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}

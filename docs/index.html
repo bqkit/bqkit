@@ -471,7 +471,7 @@
         <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"query_result"</span>));</code></pre>
     </div>
     <div class="mods">
-      <div class="mod reveal"><code>query(sql, destination)</code><span>Truncates the destination table before writing, then reads it.</span></div>
+      <div class="mod reveal"><code>query(sql, destination)</code><span>Truncates the destination table before writing, then reads it. Concurrent calls into the same destination table race: each one truncates the table, so a call can read the rows of another, or none. Give each call its own destination table, or use <code>query(sql)</code>, whose anonymous result table belongs to its job.</span></div>
       <div class="mod reveal"><code>query(sql)</code><span>Reads the anonymous result table that BigQuery creates for the job.</span></div>
       <div class="mod reveal"><code>readTable(table)</code><span>Reads an existing table. The read session is created in the connection project, which needs <code>bigquery.readsessions.create</code> and pays for the read, whatever the project of the table. The connection's service account also needs <code>bigquery.readsessions.getData</code> on the table.</span></div>
       <div class="mod reveal"><code>query(configuration)</code><span>Runs a <code>QueryJobConfiguration</code> as is, for query parameters, <code>maximumBytesBilled</code>, labels or location, then reads the table the job wrote to. It sets no write disposition.</span></div>
@@ -684,6 +684,7 @@
     }
 }</code></pre>
     </div>
+    <div class="prose"><p><code>RESULT</code> is shared by every call: this repository suits a single caller at a time, such as a batch.</p></div>
     <div class="prose"><p>The test seeds the emulator with the <code>BigQuery</code> bean, calls the repository, then checks the result:</p></div>
     <div class="code reveal">
       <div class="ct"><span class="tag">java</span> — ProductRepositoryTest

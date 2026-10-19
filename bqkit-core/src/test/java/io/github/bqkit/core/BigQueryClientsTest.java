@@ -18,8 +18,8 @@ class BigQueryClientsTest {
 
     @Test
     void bigquery_client_targets_the_configured_project_and_rest_host() {
-        BigQuery bigQuery = BigQueryClients.bigQuery(new BigQueryConnection(
-                "my-project", "http://localhost:9050", null, false, NoCredentials.getInstance()));
+        BigQuery bigQuery = BigQueryClients.bigQuery(BigQueryConnection.emulator(
+                "my-project", "http://localhost:9050", "localhost:9060"));
 
         assertThat(bigQuery.getOptions().getProjectId()).isEqualTo("my-project");
         assertThat(bigQuery.getOptions().getHost()).isEqualTo("http://localhost:9050");
@@ -27,8 +27,8 @@ class BigQueryClientsTest {
 
     @Test
     void bigquery_client_keeps_the_google_endpoint_when_no_rest_host_is_set() {
-        BigQuery bigQuery = BigQueryClients.bigQuery(new BigQueryConnection(
-                "my-project", null, null, false, NoCredentials.getInstance()));
+        BigQuery bigQuery = BigQueryClients.bigQuery(BigQueryConnection.google(
+                "my-project", NoCredentials.getInstance()));
 
         String googleDefaultHost = BigQueryOptions.newBuilder()
                 .setProjectId("my-project")
@@ -40,8 +40,8 @@ class BigQueryClientsTest {
 
     @Test
     void read_client_sends_no_credentials_when_the_connection_has_none() {
-        try (BigQueryReadClient client = BigQueryClients.readClient(new BigQueryConnection(
-                "my-project", null, null, false, NoCredentials.getInstance()))) {
+        try (BigQueryReadClient client = BigQueryClients.readClient(BigQueryConnection.google(
+                "my-project", NoCredentials.getInstance()))) {
 
             assertThat(client.getSettings().getCredentialsProvider()).isInstanceOf(NoCredentialsProvider.class);
         }
@@ -50,8 +50,8 @@ class BigQueryClientsTest {
     @Test
     void read_client_uses_the_connection_credentials() throws IOException {
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken("token", new Date(Long.MAX_VALUE)));
-        try (BigQueryReadClient client = BigQueryClients.readClient(new BigQueryConnection(
-                "my-project", null, null, false, credentials))) {
+        try (BigQueryReadClient client = BigQueryClients.readClient(BigQueryConnection.google(
+                "my-project", credentials))) {
 
             assertThat(client.getSettings().getCredentialsProvider().getCredentials()).isSameAs(credentials);
         }
@@ -59,8 +59,8 @@ class BigQueryClientsTest {
 
     @Test
     void read_client_targets_the_configured_grpc_endpoint() {
-        try (BigQueryReadClient client = BigQueryClients.readClient(new BigQueryConnection(
-                "my-project", null, "localhost:9060", true, NoCredentials.getInstance()))) {
+        try (BigQueryReadClient client = BigQueryClients.readClient(BigQueryConnection.emulator(
+                "my-project", "http://localhost:9050", "localhost:9060"))) {
 
             assertThat(client.getSettings().getTransportChannelProvider())
                     .isInstanceOfSatisfying(InstantiatingGrpcChannelProvider.class,

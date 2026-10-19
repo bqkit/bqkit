@@ -47,8 +47,8 @@ class QueryAvroReaderReadSessionTest {
     private static final String NAME_RECORD = """
             {"type": "record", "name": "row", "fields": [{"name": "name", "type": "string"}]}""";
 
-    private final BigQuery bigQuery = BigQueryClients.bigQuery(new BigQueryConnection(
-            "my-project", null, null, false, NoCredentials.getInstance()));
+    private final BigQuery bigQuery = BigQueryClients.bigQuery(BigQueryConnection.google(
+            "my-project", NoCredentials.getInstance()));
     private final BigQueryReadClient readClient = mock(BigQueryReadClient.class);
 
     @Test

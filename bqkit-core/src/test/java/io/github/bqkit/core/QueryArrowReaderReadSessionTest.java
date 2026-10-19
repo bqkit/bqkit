@@ -22,6 +22,7 @@ import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
 import com.google.cloud.bigquery.storage.v1.ReadStream;
 import com.google.protobuf.ByteString;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.arrow.vector.VarCharVector;
@@ -76,6 +77,30 @@ class QueryArrowReaderReadSessionTest {
         });
 
         assertThat(names).containsExactly("apple", "banana", "cherry");
+    }
+
+    @Test
+    void skips_the_schema_sent_before_the_record_batches() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        stream(schema, rows(ArrowMessages.schema(schema).concat(ArrowMessages.recordBatch(schema, "apple"))));
+        List<Integer> rowCounts = new ArrayList<>();
+
+        new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                batch -> rowCounts.add(batch.getRowCount()));
+
+        assertThat(rowCounts).containsExactly(1);
+    }
+
+    @Test
+    void releases_the_body_of_a_record_batch_that_fails_to_deserialize() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        stream(schema, rows(ArrowMessages.oversizedRecordBatch()));
+
+        assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                batch -> { }))
+                .isInstanceOf(UncheckedIOException.class)
+                .hasMessageContaining("INT_MAX")
+                .satisfies(failure -> assertThat(failure.getCause().getSuppressed()).isEmpty());
     }
 
     @Test

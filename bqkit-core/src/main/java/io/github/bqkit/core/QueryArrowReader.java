@@ -88,22 +88,37 @@ public class QueryArrowReader {
                 channel(response.getArrowRecordBatch().getSerializedRecordBatch()), allocator);
         for (MessageResult message = messages.readNext(); Objects.nonNull(message); message = messages.readNext()) {
             byte header = message.getMessage().headerType();
+            ArrowBuf body = message.getBodyBuffer();
             if (header != MessageHeader.RecordBatch) {
-                try (ArrowBuf body = message.getBodyBuffer()) {
-                    if (header == MessageHeader.DictionaryBatch) {
-                        throw new IllegalStateException("Arrow dictionary batches are not supported");
-                    }
+                release(body);
+                if (header == MessageHeader.DictionaryBatch) {
+                    throw new IllegalStateException("Arrow dictionary batches are not supported");
                 }
                 continue;
             }
-            try (ArrowRecordBatch batch = MessageSerializer.deserializeRecordBatch(
-                    message.getMessage(), message.getBodyBuffer())) {
+            try (ArrowRecordBatch batch = deserialize(message, body)) {
                 loader.load(batch);
             }
             if (root.getRowCount() > 0) {
                 batches.accept(root);
             }
             root.clear();
+        }
+    }
+
+    /** Releases the body when the record batch cannot be built, as Arrow only releases it once the batch exists. */
+    private static ArrowRecordBatch deserialize(MessageResult message, ArrowBuf body) throws IOException {
+        try {
+            return MessageSerializer.deserializeRecordBatch(message.getMessage(), body);
+        } catch (IOException | RuntimeException failure) {
+            release(body);
+            throw failure;
+        }
+    }
+
+    private static void release(ArrowBuf body) {
+        if (Objects.nonNull(body)) {
+            body.close();
         }
     }
 

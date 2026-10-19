@@ -54,6 +54,24 @@ class ByteStringChannelTest {
     }
 
     @Test
+    void hands_out_every_byte_of_a_payload_made_of_several_chunks() throws IOException {
+        String first = "a".repeat(200);
+        String second = "b".repeat(200);
+        ByteString payload = ByteString.copyFromUtf8(first).concat(ByteString.copyFromUtf8(second));
+        assertThat(payload.asReadOnlyByteBufferList()).hasSize(2);
+        ByteStringChannel channel = new ByteStringChannel(payload);
+        ByteBuffer destination = ByteBuffer.allocate(150);
+        ByteArrayOutputStream read = new ByteArrayOutputStream();
+        int count;
+
+        while ((count = channel.read(destination.clear())) != -1) {
+            read.write(destination.array(), 0, count);
+        }
+
+        assertThat(read.toString()).isEqualTo(first + second);
+    }
+
+    @Test
     void stops_reading_once_closed() {
         ByteStringChannel channel = new ByteStringChannel(ByteString.copyFromUtf8("abc"));
         assertThat(channel.isOpen()).isTrue();

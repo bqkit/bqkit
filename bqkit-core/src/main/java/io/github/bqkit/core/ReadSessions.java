@@ -10,8 +10,12 @@ import com.google.cloud.bigquery.storage.v1.ReadSession;
 import java.util.Objects;
 
 /**
- * Opens a single-stream read session on a table, in the project of the table or else the default one, and
- * cancels its stream.
+ * Opens a single-stream read session on a table and cancels its stream.
+ *
+ * <p>The session is created in the connection project, which needs {@code bigquery.readsessions.create} and
+ * pays for the read, whichever project owns the table. The project of the table is only the one that holds
+ * the data: it is also the billing project when the connection has none. A table without a project is read
+ * from the connection project.
  */
 final class ReadSessions {
 
@@ -19,12 +23,16 @@ final class ReadSessions {
     }
 
     static ReadSession create(BigQuery bigQuery, BigQueryReadClient readClient, TableId table, DataFormat format) {
-        String project = Objects.requireNonNullElse(table.getProject(), bigQuery.getOptions().getProjectId());
+        String defaultProject = bigQuery.getOptions().getProjectId();
+        String billingProject = Objects.requireNonNull(
+                Objects.nonNull(defaultProject) ? defaultProject : table.getProject(),
+                "No project to create the read session in: set a project on the connection or on the table");
+        String tableProject = Objects.requireNonNullElse(table.getProject(), billingProject);
         return readClient.createReadSession(CreateReadSessionRequest.newBuilder()
-                .setParent("projects/" + project)
+                .setParent("projects/" + billingProject)
                 .setReadSession(ReadSession.newBuilder()
                         .setTable("projects/%s/datasets/%s/tables/%s"
-                                .formatted(project, table.getDataset(), table.getTable()))
+                                .formatted(tableProject, table.getDataset(), table.getTable()))
                         .setDataFormat(format))
                 .setMaxStreamCount(1)
                 .build());

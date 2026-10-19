@@ -77,9 +77,11 @@ public class QueryAvroReader {
                 for (ReadRowsResponse response : responses) {
                     decode(response, datumReader, rows);
                 }
-            } finally {
-                responses.cancel();
+            } catch (RuntimeException | Error failure) {
+                ReadSessions.cancel(responses, failure);
+                throw failure;
             }
+            responses.cancel();
         }
     }
 

@@ -3,6 +3,7 @@ package io.github.bqkit.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -90,6 +91,21 @@ class QueryArrowReaderReadSessionTest {
                 .hasMessage("consumer failed");
 
         verify(responses).cancel();
+    }
+
+    @Test
+    void keeps_the_consumer_failure_when_cancelling_the_stream_fails_too() {
+        Schema schema = new Schema(List.of(Field.nullable("name", ArrowType.Utf8.INSTANCE)));
+        ServerStream<ReadRowsResponse> responses = stream(schema, rows(ArrowMessages.recordBatch(schema, "apple")));
+        doThrow(new IllegalStateException("cancel failed")).when(responses).cancel();
+
+        assertThatThrownBy(() -> new QueryArrowReader(bigQuery, readClient).readTable(TableId.of("shop", "products"),
+                batch -> {
+                    throw new IllegalStateException("consumer failed");
+                }))
+                .hasMessage("consumer failed")
+                .satisfies(failure -> assertThat(failure.getSuppressed())
+                        .singleElement().extracting(Throwable::getMessage).isEqualTo("cancel failed"));
     }
 
     @Test

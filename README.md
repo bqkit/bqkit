@@ -77,8 +77,8 @@ reader.query("SELECT name FROM `my-project.shop.products`", TableId.of("shop", "
         row -> System.out.println(row.get("name")));
 ```
 
-The next rows are only fetched once the callback returns, so a slow callback slows the read down
-instead of filling the memory. If a row cannot be decoded or the callback throws, the read stops and
+The next response of the stream is only requested once every row of the current one has gone through
+the callback, so a slow callback slows the read down instead of filling the memory. If a row cannot be decoded or the callback throws, the read stops and
 the stream is cancelled: the rows before it have already been handed to the callback.
 
 `QueryArrowReader` takes the same arguments, and calls the callback once per record batch:

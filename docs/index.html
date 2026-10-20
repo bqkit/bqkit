@@ -510,7 +510,7 @@
     <div class="prose"><p>The starter ships the configuration metadata of the <code>bqkit.*</code> keys: your IDE completes and documents them in <code>application.yml</code>.</p></div>
 
     <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">With spring-cloud-gcp</h3>
-    <div class="prose"><p>With <code>spring-cloud-gcp-starter-bigquery</code> on the classpath, bqkit runs after it and reuses its <code>BigQuery</code> client: the queries run with the <code>spring.cloud.gcp.*</code> project and credentials. The Storage Read client still comes from <code>bqkit.bigquery.*</code>. Set the same project and credentials on both sides, or declare your own <code>BigQueryReadClient</code> bean, so the query and the read use the same identity.</p></div>
+    <div class="prose"><p>With <code>spring-cloud-gcp-starter-bigquery</code> on the classpath, bqkit runs after it and reuses its <code>BigQuery</code> client. The Storage Read client takes the credentials of that client: the query and the read run with the <code>spring.cloud.gcp.*</code> project and credentials, and <code>bqkit.bigquery.*</code> does not apply. bqkit logs a warning at startup when <code>bqkit.bigquery.*</code> is set anyway. spring-cloud-gcp itself requires <code>spring.cloud.gcp.bigquery.dataset-name</code>: its <code>BigQueryTemplate</code> fails without it.</p></div>
 
     <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">Without the starter</h3>
     <div class="prose"><p><code>bqkit-core</code> has no Spring dependency. Declare the beans yourself, with keys of your own in <code>application.yml</code>:</p></div>

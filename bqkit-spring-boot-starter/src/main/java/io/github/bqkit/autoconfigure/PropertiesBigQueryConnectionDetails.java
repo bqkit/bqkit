@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Google endpoints with the Application Default Credentials, resolved once when the first client is built and
+ * Google endpoints with the Application Default Credentials, resolved once when a client first reads them and
  * shared by both clients.
  */
 final class PropertiesBigQueryConnectionDetails implements BigQueryConnectionDetails {
@@ -27,7 +27,7 @@ final class PropertiesBigQueryConnectionDetails implements BigQueryConnectionDet
 
     @Override
     public BigQueryConnection connection() {
-        return BigQueryConnection.google(properties.projectId(), credentials()).withLocation(properties.location());
+        return BigQueryConnection.google(properties.projectId(), this::credentials).withLocation(properties.location());
     }
 
     private synchronized Credentials credentials() {

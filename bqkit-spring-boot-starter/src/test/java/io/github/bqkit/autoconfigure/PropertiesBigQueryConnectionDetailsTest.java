@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.auth.Credentials;
 import com.google.cloud.NoCredentials;
+import io.github.bqkit.core.BigQueryConnection;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,7 +46,7 @@ class PropertiesBigQueryConnectionDetailsTest {
     }
 
     @Test
-    void resolves_the_credentials_only_when_a_client_is_built() {
+    void resolves_the_credentials_only_when_a_client_reads_them() {
         AtomicInteger created = new AtomicInteger();
 
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
@@ -54,9 +55,11 @@ class PropertiesBigQueryConnectionDetailsTest {
                     return NoCredentials.getInstance();
                 });
 
+        BigQueryConnection connection = details.connection();
+
         assertThat(created).hasValue(0);
 
-        details.connection();
+        connection.credentials();
 
         assertThat(created).hasValue(1);
     }
@@ -72,7 +75,7 @@ class PropertiesBigQueryConnectionDetailsTest {
                     return NoCredentials.getInstance();
                 });
 
-        assertThatThrownBy(details::connection).isInstanceOf(UncheckedIOException.class);
+        assertThatThrownBy(() -> details.connection().credentials()).isInstanceOf(UncheckedIOException.class);
 
         assertThat(details.connection().credentials()).isSameAs(NoCredentials.getInstance());
         assertThat(attempts).hasValue(2);

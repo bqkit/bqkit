@@ -22,7 +22,7 @@ class BqkitPropertiesMetadataTest {
 
         assertThat(metadata.<List<String>>read("$.properties[*].name"))
                 .containsExactlyInAnyOrder("bqkit.bigquery.project-id", "bqkit.bigquery.impersonate-service-account",
-                        "bqkit.bigquery.location");
+                        "bqkit.bigquery.location", "bqkit.bigquery.max-read-streams");
         assertThat(metadata.<List<String>>read("$.properties[?(@.name == 'bqkit.bigquery.project-id')].description"))
                 .singleElement().asString().containsIgnoringCase("project billed for the queries");
         assertThat(metadata.<List<String>>read(
@@ -30,6 +30,12 @@ class BqkitPropertiesMetadataTest {
                 .singleElement().asString().containsIgnoringCase("service account impersonated");
         assertThat(metadata.<List<String>>read("$.properties[?(@.name == 'bqkit.bigquery.location')].description"))
                 .singleElement().asString().containsIgnoringCase("location of the query jobs");
+        assertThat(metadata.<List<String>>read(
+                "$.properties[?(@.name == 'bqkit.bigquery.max-read-streams')].description"))
+                .singleElement().asString().containsIgnoringCase("read at the same time");
+        assertThat(metadata.<List<Integer>>read(
+                "$.properties[?(@.name == 'bqkit.bigquery.max-read-streams')].defaultValue"))
+                .containsExactly(1);
     }
 
     private static String bqkitMetadata() throws IOException {

@@ -15,7 +15,7 @@ class PropertiesBigQueryConnectionDetailsTest {
     @Test
     void connection_runs_the_jobs_in_the_configured_location() {
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
-                new BqkitProperties("my-project", null, "EU"), NoCredentials::getInstance);
+                new BqkitProperties("my-project", null, "EU", 1), NoCredentials::getInstance);
 
         assertThat(details.connection().location()).isEqualTo("EU");
     }
@@ -23,7 +23,7 @@ class PropertiesBigQueryConnectionDetailsTest {
     @Test
     void an_empty_location_property_lets_bigquery_pick_the_location() {
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
-                new BqkitProperties("my-project", null, ""), NoCredentials::getInstance);
+                new BqkitProperties("my-project", null, "", 1), NoCredentials::getInstance);
 
         assertThat(details.connection().location()).isNull();
     }
@@ -32,7 +32,7 @@ class PropertiesBigQueryConnectionDetailsTest {
     void shares_the_credentials_between_the_clients() {
         AtomicInteger created = new AtomicInteger();
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
-                new BqkitProperties("my-project", null, null), () -> {
+                new BqkitProperties("my-project", null, null, 1), () -> {
                     created.incrementAndGet();
                     return NoCredentials.getInstance();
                 });
@@ -49,7 +49,7 @@ class PropertiesBigQueryConnectionDetailsTest {
         AtomicInteger created = new AtomicInteger();
 
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
-                new BqkitProperties("my-project", null, null), () -> {
+                new BqkitProperties("my-project", null, null, 1), () -> {
                     created.incrementAndGet();
                     return NoCredentials.getInstance();
                 });
@@ -65,7 +65,7 @@ class PropertiesBigQueryConnectionDetailsTest {
     void resolves_the_credentials_again_after_a_failure() {
         AtomicInteger attempts = new AtomicInteger();
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
-                new BqkitProperties("my-project", null, null), () -> {
+                new BqkitProperties("my-project", null, null, 1), () -> {
                     if (attempts.incrementAndGet() == 1) {
                         throw new UncheckedIOException(new IOException("no Application Default Credentials"));
                     }

@@ -48,7 +48,7 @@ public class BqkitAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     QueryArrowReader queryArrowReader(BigQuery bigQuery, BigQueryReadClient readClient,
-                                    BqkitProperties properties) {
+                                      BqkitProperties properties) {
         return new QueryArrowReader(bigQuery, readClient, properties.maxReadStreams());
     }
 }

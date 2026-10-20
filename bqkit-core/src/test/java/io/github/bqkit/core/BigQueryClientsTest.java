@@ -39,6 +39,14 @@ class BigQueryClientsTest {
     }
 
     @Test
+    void bigquery_client_runs_the_jobs_in_the_connection_location() {
+        BigQuery bigQuery = BigQueryClients.bigQuery(BigQueryConnection.google(
+                "my-project", NoCredentials.getInstance()).withLocation("europe-west1"));
+
+        assertThat(bigQuery.getOptions().getLocation()).isEqualTo("europe-west1");
+    }
+
+    @Test
     void read_client_sends_no_credentials_when_the_connection_has_none() {
         try (BigQueryReadClient client = BigQueryClients.readClient(BigQueryConnection.google(
                 "my-project", NoCredentials.getInstance()))) {

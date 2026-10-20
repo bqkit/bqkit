@@ -35,7 +35,7 @@ public final class BigQueryConnection {
      * @return the connection
      */
     public static BigQueryConnection google(String projectId, Credentials credentials) {
-        return google(projectId, () -> credentials);
+        return googleWithCredentialsSupplier(projectId, () -> credentials);
     }
 
     /**
@@ -45,7 +45,8 @@ public final class BigQueryConnection {
      * @param credentials supplies the credentials shared by the REST and gRPC clients
      * @return the connection
      */
-    public static BigQueryConnection google(String projectId, Supplier<Credentials> credentials) {
+    public static BigQueryConnection googleWithCredentialsSupplier(String projectId,
+            Supplier<Credentials> credentials) {
         return new BigQueryConnection(projectId, null, null, false, credentials, null);
     }
 

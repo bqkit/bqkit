@@ -19,6 +19,7 @@
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
         <skipPitest>true</skipPitest>
+        <module.name>io.github.bqkit.test</module.name>
     </properties>
 
     <dependencies>
@@ -27,8 +28,20 @@
             <artifactId>bqkit-spring-boot-starter</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.github.bqkit</groupId>
+            <artifactId>bqkit-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-testcontainers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
@@ -42,6 +55,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

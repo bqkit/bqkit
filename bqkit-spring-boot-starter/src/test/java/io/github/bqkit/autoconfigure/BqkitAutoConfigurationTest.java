@@ -39,6 +39,9 @@ class BqkitAutoConfigurationTest {
     private static final BigQueryConnectionDetails EMULATOR_DETAILS = () -> BigQueryConnection.emulator(
             "testproject", "http://localhost:9050", "localhost:9060");
 
+    private static final BigQueryConnectionDetails GOOGLE_DETAILS = () -> BigQueryConnection.google(
+            "testproject", NoCredentials.getInstance());
+
     private static final GoogleCredentials GCP_CREDENTIALS = GoogleCredentials.create(new AccessToken("token", null));
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
@@ -153,7 +156,7 @@ class BqkitAutoConfigurationTest {
     void does_not_warn_about_blank_bqkit_properties_with_a_bigquery_client_built_elsewhere(CapturedOutput output) {
         BigQuery custom = customBigQuery(NoCredentials.getInstance());
         runner.withPropertyValues("bqkit.bigquery.location= ")
-                .withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+                .withBean(BigQueryConnectionDetails.class, () -> GOOGLE_DETAILS)
                 .withBean(BigQuery.class, () -> custom)
                 .run(context -> assertThat(output)
                         .contains("INFO")
@@ -163,12 +166,40 @@ class BqkitAutoConfigurationTest {
     @Test
     void tells_which_bigquery_client_is_used_when_it_comes_from_elsewhere(CapturedOutput output) {
         BigQuery custom = customBigQuery(NoCredentials.getInstance());
-        runner.withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+        runner.withBean(BigQueryConnectionDetails.class, () -> GOOGLE_DETAILS)
                 .withBean(BigQuery.class, () -> custom)
                 .run(context -> assertThat(output)
                         .contains("INFO")
                         .doesNotContain("WARN")
                         .contains("custom-project"));
+    }
+
+    @Test
+    void warns_that_a_bigquery_client_built_elsewhere_does_not_query_the_emulator_bqkit_reads_from(
+            CapturedOutput output) {
+        BigQuery custom = customBigQuery(NoCredentials.getInstance());
+        runner.withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+                .withBean(BigQuery.class, () -> custom)
+                .run(context -> assertThat(output)
+                        .contains("WARN")
+                        .contains("localhost:9060")
+                        .contains("https://www.googleapis.com"));
+    }
+
+    @Test
+    void does_not_warn_when_a_bigquery_client_built_elsewhere_queries_the_emulator_bqkit_reads_from(
+            CapturedOutput output) {
+        BigQuery custom = BigQueryOptions.newBuilder()
+                .setProjectId("testproject")
+                .setHost("http://localhost:9050")
+                .setCredentials(NoCredentials.getInstance())
+                .build()
+                .getService();
+        runner.withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+                .withBean(BigQuery.class, () -> custom)
+                .run(context -> assertThat(output)
+                        .contains("INFO")
+                        .doesNotContain("WARN"));
     }
 
     @Test

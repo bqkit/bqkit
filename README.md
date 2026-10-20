@@ -271,7 +271,7 @@ class ProductRepositoryTest {
 }
 ```
 
-`BqkitBigQueryEmulatorContainer` runs `ghcr.io/goccy/bigquery-emulator:0.8.1` on project `testproject`
+`BqkitBigQueryEmulatorContainer` runs `DEFAULT_IMAGE`, the goccy/bigquery-emulator image bqkit is tested against, on project `testproject`
 and exposes the gRPC port of the Storage Read API. `@ServiceConnection` only accepts this container: the
 Testcontainers `BigQueryEmulatorContainer` does not expose the gRPC port.
 

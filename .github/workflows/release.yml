@@ -24,7 +24,6 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: maven
           server-id: central
           server-username: MAVEN_CENTRAL_USERNAME
           server-password: MAVEN_CENTRAL_PASSWORD
@@ -72,3 +71,15 @@ jobs:
           name: central-bundle
           path: target/central-publishing/central-bundle.zip
           if-no-files-found: ignore
+
+  github-release:
+    name: Create the GitHub release
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create the release
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}

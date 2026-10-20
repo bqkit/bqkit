@@ -37,8 +37,7 @@ Each major version of bqkit targets one Spring Boot generation:
 
 ## Usage
 
-`${bqkit.version}` is the latest version shown by the badge above. Until the first release,
-build bqkit locally with `mvn install` and use the version of the pom.
+`${bqkit.version}` is the latest version shown by the badge above.
 
 ```xml
 <dependency>
@@ -70,9 +69,12 @@ Concurrent calls into the same destination table race: each one truncates the ta
 read the rows of another, or none. Give each call its own destination table, or use `query(sql)`, whose
 anonymous result table belongs to its job.
 
-`query(configuration)` runs a `QueryJobConfiguration` as is, for query parameters, `maximumBytesBilled`,
-labels or location. It sets no write disposition: set the destination and `WRITE_TRUNCATE` yourself if you
-need them.
+`query(configuration)` runs a `QueryJobConfiguration` as is, for query parameters, `maximumBytesBilled`
+or labels. It sets no write disposition: set the destination and `WRITE_TRUNCATE` yourself if you need them.
+The job runs in the location of the client, `location` or `BigQueryConnection.withLocation(...)`.
+
+Only the result of a `SELECT` can be read: a DML, DDL or script statement runs, then the reader fails, as
+the job wrote no table.
 
 ```java
 List<GenericRecord> rows = reader.query(QueryJobConfiguration.newBuilder(
@@ -279,6 +281,22 @@ class ProductRepositoryTest {
 `BqkitBigQueryEmulatorContainer` runs `DEFAULT_IMAGE`, the goccy/bigquery-emulator image bqkit is tested against, on project `testproject`
 and exposes the gRPC port of the Storage Read API. `@ServiceConnection` only accepts this container: the
 Testcontainers `BigQueryEmulatorContainer` does not expose the gRPC port.
+
+To pull the emulator image from a mirror, declare it as a substitute for the goccy image:
+
+```java
+new BqkitBigQueryEmulatorContainer(DockerImageName.parse("registry.example.com/goccy/bigquery-emulator:0.8.1")
+        .asCompatibleSubstituteFor("ghcr.io/goccy/bigquery-emulator"));
+```
+
+With spring-cloud-gcp on the classpath, its `BigQuery` client keeps querying Google while the Storage Read
+client reads from the emulator, and bqkit logs a warning. Exclude it in tests:
+
+```yaml
+spring:
+  autoconfigure:
+    exclude: com.google.cloud.spring.autoconfigure.bigquery.GcpBigQueryAutoConfiguration
+```
 
 ### A complete test
 

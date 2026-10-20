@@ -139,6 +139,28 @@ class BqkitAutoConfigurationTest {
     }
 
     @Test
+    void warns_that_the_location_does_not_apply_to_a_bigquery_client_built_elsewhere(CapturedOutput output) {
+        BigQuery custom = customBigQuery(NoCredentials.getInstance());
+        runner.withPropertyValues("bqkit.bigquery.location=EU")
+                .withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+                .withBean(BigQuery.class, () -> custom)
+                .run(context -> assertThat(output)
+                        .contains("WARN")
+                        .contains("bqkit.bigquery.* do not apply"));
+    }
+
+    @Test
+    void does_not_warn_about_blank_bqkit_properties_with_a_bigquery_client_built_elsewhere(CapturedOutput output) {
+        BigQuery custom = customBigQuery(NoCredentials.getInstance());
+        runner.withPropertyValues("bqkit.bigquery.location= ")
+                .withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+                .withBean(BigQuery.class, () -> custom)
+                .run(context -> assertThat(output)
+                        .contains("INFO")
+                        .doesNotContain("WARN"));
+    }
+
+    @Test
     void tells_which_bigquery_client_is_used_when_it_comes_from_elsewhere(CapturedOutput output) {
         BigQuery custom = customBigQuery(NoCredentials.getInstance());
         runner.withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)

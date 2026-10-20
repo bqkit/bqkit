@@ -40,13 +40,15 @@ public class BqkitAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    QueryAvroReader queryAvroReader(BigQuery bigQuery, BigQueryReadClient readClient) {
-        return new QueryAvroReader(bigQuery, readClient);
+    QueryAvroReader queryAvroReader(BigQuery bigQuery, BigQueryReadClient readClient,
+                                    BqkitProperties properties) {
+        return new QueryAvroReader(bigQuery, readClient, properties.maxReadStreams());
     }
 
     @Bean
     @ConditionalOnMissingBean
-    QueryArrowReader queryArrowReader(BigQuery bigQuery, BigQueryReadClient readClient) {
-        return new QueryArrowReader(bigQuery, readClient);
+    QueryArrowReader queryArrowReader(BigQuery bigQuery, BigQueryReadClient readClient,
+                                    BqkitProperties properties) {
+        return new QueryArrowReader(bigQuery, readClient, properties.maxReadStreams());
     }
 }

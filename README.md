@@ -54,6 +54,7 @@ bqkit:
     project-id: my-project
     impersonate-service-account: reader@my-project.iam.gserviceaccount.com # optional
     location: EU # optional, location of the query jobs
+    max-read-streams: 4 # optional, 1 by default
 ```
 
 ```java
@@ -147,6 +148,25 @@ on Java 21: start the application, and the tests, with
     </configuration>
 </plugin>
 ```
+
+### Parallel reads
+
+A read session reads one stream by default. `max-read-streams`, or the `maxStreams` argument of the
+reader constructors without the starter, asks BigQuery for up to that many streams and reads them at the
+same time, each on its own virtual thread. BigQuery may open fewer streams than asked, for a small table.
+
+```java
+QueryAvroReader reader = new QueryAvroReader(bigQuery, readClient, 4);
+```
+
+With more than one stream:
+
+- the rows come in no order, even with an `ORDER BY`: keep the default of 1 when the order matters;
+- the callback is called by one stream at a time, so it does not have to be thread-safe, and a stream
+  waiting for the callback requests no new response;
+- `QueryArrowReader` hands each stream its own batch: copy what you keep, as with a single stream;
+- the first failure, a row that cannot be decoded or a callback that throws, stops the read: the other
+  streams are cancelled and that failure is thrown.
 
 Every bean backs off when the application defines its own. Defining a `BigQueryConnectionDetails`
 bean replaces the connection built from the properties.

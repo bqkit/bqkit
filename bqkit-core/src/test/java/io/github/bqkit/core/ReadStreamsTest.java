@@ -132,7 +132,7 @@ class ReadStreamsTest {
         reading.interrupt();
         reading.join();
 
-        assertThat(thrown.get()).isNotNull();
+        assertThat(thrown.get()).hasRootCauseInstanceOf(InterruptedException.class);
         assertThat(interrupted).isTrue();
         verify(first, atLeastOnce()).cancel();
         verify(second, atLeastOnce()).cancel();

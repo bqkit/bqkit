@@ -237,8 +237,6 @@ The application code queries through `QueryAvroReader`:
 @Repository
 public class ProductRepository {
 
-    private static final TableId RESULT = TableId.of("shop", "products_in_stock");
-
     private final QueryAvroReader reader;
 
     public ProductRepository(QueryAvroReader reader) {
@@ -246,14 +244,16 @@ public class ProductRepository {
     }
 
     public List<String> findNamesInStock() {
-        return reader.query("SELECT name FROM shop.products WHERE stock > 0", RESULT).stream()
+        TableId result = TableId.of("shop", "products_in_stock_" + UUID.randomUUID().toString().replace('-', '_'));
+        return reader.query("SELECT name FROM shop.products WHERE stock > 0", result).stream()
                 .map(row -> (String) row.get("name"))
                 .toList();
     }
 }
 ```
 
-`RESULT` is shared by every call: this repository suits a single caller at a time, such as a batch.
+Each call writes to its own destination table, so concurrent calls do not race. Set a default table
+expiration on the dataset so that these tables do not pile up.
 
 The test seeds the emulator with the `BigQuery` bean, calls the repository, then checks the result:
 

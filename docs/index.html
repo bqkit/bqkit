@@ -669,8 +669,6 @@
 <pre id="repository"><code><span class="a">@Repository</span>
 <span class="k">public class</span> <span class="t">ProductRepository</span> {
 
-    <span class="k">private static final</span> <span class="t">TableId</span> RESULT = <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"products_in_stock"</span>);
-
     <span class="k">private final</span> <span class="t">QueryAvroReader</span> reader;
 
     <span class="k">public</span> <span class="t">ProductRepository</span>(<span class="t">QueryAvroReader</span> reader) {
@@ -678,13 +676,14 @@
     }
 
     <span class="k">public</span> <span class="t">List</span>&lt;<span class="t">String</span>&gt; findNamesInStock() {
-        <span class="k">return</span> reader.query(<span class="s">"SELECT name FROM shop.products WHERE stock &gt; 0"</span>, RESULT).stream()
+        <span class="t">TableId</span> result = <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"products_in_stock_"</span> + <span class="t">UUID</span>.randomUUID().toString().replace(<span class="s">'-'</span>, <span class="s">'_'</span>));
+        <span class="k">return</span> reader.query(<span class="s">"SELECT name FROM shop.products WHERE stock &gt; 0"</span>, result).stream()
                 .map(row -&gt; (<span class="t">String</span>) row.get(<span class="s">"name"</span>))
                 .toList();
     }
 }</code></pre>
     </div>
-    <div class="prose"><p><code>RESULT</code> is shared by every call: this repository suits a single caller at a time, such as a batch.</p></div>
+    <div class="prose"><p>Each call writes to its own destination table, so concurrent calls do not race. Set a default table expiration on the dataset so that these tables do not pile up.</p></div>
     <div class="prose"><p>The test seeds the emulator with the <code>BigQuery</code> bean, calls the repository, then checks the result:</p></div>
     <div class="code reveal">
       <div class="ct"><span class="tag">java</span> — ProductRepositoryTest

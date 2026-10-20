@@ -11,7 +11,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.boot.testcontainers.service.connection.ServiceConnectionAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.testcontainers.containers.BigQueryEmulatorContainer;
+import org.testcontainers.gcloud.BigQueryEmulatorContainer;
 
 class BigQueryEmulatorContainerConnectionDetailsFactoryTest {
 

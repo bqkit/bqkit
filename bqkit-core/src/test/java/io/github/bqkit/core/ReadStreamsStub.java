@@ -43,6 +43,17 @@ final class ReadStreamsStub {
         return stream;
     }
 
+    /** A stream whose opening returns only once {@code latch} is counted down. */
+    @SuppressWarnings("unchecked")
+    ServerStream<ReadRowsResponse> streamOpenedAfter(String name, CountDownLatch latch) {
+        ServerStream<ReadRowsResponse> stream = mock(ServerStream.class);
+        doAnswer(invocation -> {
+            waitFor(latch);
+            return stream;
+        }).when(readRows).call(argThat(request -> request.getReadStream().equals(name)));
+        return stream;
+    }
+
     /** A stream that sends nothing until it is cancelled, then ends. */
     @SuppressWarnings("unchecked")
     ServerStream<ReadRowsResponse> streamUntilCancelled(String name, Runnable onOpen) {

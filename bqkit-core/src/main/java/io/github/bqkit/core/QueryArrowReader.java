@@ -26,7 +26,7 @@ import org.apache.arrow.vector.ipc.message.MessageSerializer;
 import org.apache.arrow.vector.types.pojo.Schema;
 
 /** Reads a table through the Storage Read API in Arrow, one record batch at a time. */
-public class QueryArrowReader {
+public final class QueryArrowReader {
 
     private final BigQuery bigQuery;
     private final BigQueryReadClient readClient;
@@ -38,8 +38,8 @@ public class QueryArrowReader {
     }
 
     public QueryArrowReader(BigQuery bigQuery, BigQueryReadClient readClient, int maxStreams) {
-        this.bigQuery = bigQuery;
-        this.readClient = readClient;
+        this.bigQuery = Objects.requireNonNull(bigQuery, "bigQuery");
+        this.readClient = Objects.requireNonNull(readClient, "readClient");
         this.maxStreams = ReadSessions.requirePositive(maxStreams);
     }
 

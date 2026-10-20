@@ -23,7 +23,7 @@ import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
 
 /** Runs a query into a destination table, then reads that table through the Storage Read API in Avro. */
-public class QueryAvroReader {
+public final class QueryAvroReader {
 
     /**
      * TIMESTAMP as {@code Instant}, DATE as {@code LocalDate}, TIME as {@code LocalTime},
@@ -41,8 +41,8 @@ public class QueryAvroReader {
     }
 
     public QueryAvroReader(BigQuery bigQuery, BigQueryReadClient readClient, int maxStreams) {
-        this.bigQuery = bigQuery;
-        this.readClient = readClient;
+        this.bigQuery = Objects.requireNonNull(bigQuery, "bigQuery");
+        this.readClient = Objects.requireNonNull(readClient, "readClient");
         this.maxStreams = ReadSessions.requirePositive(maxStreams);
     }
 

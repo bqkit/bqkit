@@ -39,7 +39,7 @@ final class ReadSessions {
                 .build());
     }
 
-    /** Cancels the stream after a failed read: the failure of the read stays the one thrown. */
+    /** Returns {@code maxStreams}, rejected when it is less than 1. */
     static int requirePositive(int maxStreams) {
         if (maxStreams < 1) {
             throw new IllegalArgumentException("maxStreams must be at least 1, was " + maxStreams);
@@ -47,6 +47,7 @@ final class ReadSessions {
         return maxStreams;
     }
 
+    /** Cancels the stream after a failed read: the failure of the read stays the one thrown. */
     static void cancel(ServerStream<?> responses, Throwable failure) {
         try {
             responses.cancel();

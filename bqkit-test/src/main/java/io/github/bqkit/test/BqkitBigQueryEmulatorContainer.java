@@ -2,6 +2,7 @@ package io.github.bqkit.test;
 
 import java.util.ResourceBundle;
 import org.testcontainers.containers.BigQueryEmulatorContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * BigQuery emulator usable for Avro reads through the Storage Read API.
@@ -22,6 +23,14 @@ public class BqkitBigQueryEmulatorContainer extends BigQueryEmulatorContainer {
     }
 
     public BqkitBigQueryEmulatorContainer(String image) {
+        this(DockerImageName.parse(image));
+    }
+
+    /**
+     * Runs {@code image}, which may come from a mirror once declared with
+     * {@code asCompatibleSubstituteFor("ghcr.io/goccy/bigquery-emulator")}.
+     */
+    public BqkitBigQueryEmulatorContainer(DockerImageName image) {
         super(image);
         withCommand("--project", PROJECT_ID);
         withExposedPorts(HTTP_PORT, GRPC_PORT);

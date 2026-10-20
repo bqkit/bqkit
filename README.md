@@ -170,6 +170,10 @@ With more than one stream:
 - the first failure, a row that cannot be decoded or a callback that throws, stops the read: the other
   streams are cancelled and that failure is thrown.
 
+A read session lasts at most 6 hours on the BigQuery side. A read still running after that fails, with
+one stream or several: more streams shorten the read but do not extend the session. Split a query
+that cannot be read in 6 hours into several queries.
+
 Every bean backs off when the application defines its own. Defining a `BigQueryConnectionDetails`
 bean replaces the connection built from the properties.
 

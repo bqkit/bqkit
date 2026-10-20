@@ -182,7 +182,7 @@ public class BigQueryConfig {
     BigQueryConnection bigQueryConnection(
             @Value("${bigquery.project-id}") String projectId,
             @Value("${bigquery.impersonate-service-account:}") String impersonateServiceAccount,
-            @Value("${bigquery.location:#{null}}") String location) {
+            @Value("${bigquery.location:}") String location) {
         return BigQueryConnection.google(projectId, CredentialsFactory.create(impersonateServiceAccount))
                 .withLocation(location);
     }

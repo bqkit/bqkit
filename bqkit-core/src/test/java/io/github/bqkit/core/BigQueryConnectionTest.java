@@ -57,4 +57,12 @@ class BigQueryConnectionTest {
         assertThat(located.credentials()).isSameAs(NoCredentials.getInstance());
         assertThat(emulator.location()).isNull();
     }
+
+    @Test
+    void a_blank_location_means_no_location() {
+        BigQueryConnection connection = BigQueryConnection.google("my-project", NoCredentials.getInstance());
+
+        assertThat(connection.withLocation("").location()).isNull();
+        assertThat(connection.withLocation(" ").location()).isNull();
+    }
 }

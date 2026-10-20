@@ -21,6 +21,14 @@ class PropertiesBigQueryConnectionDetailsTest {
     }
 
     @Test
+    void an_empty_location_property_lets_bigquery_pick_the_location() {
+        PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
+                new BqkitProperties("my-project", null, ""), NoCredentials::getInstance);
+
+        assertThat(details.connection().location()).isNull();
+    }
+
+    @Test
     void shares_the_credentials_between_the_clients() {
         AtomicInteger created = new AtomicInteger();
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(

@@ -562,6 +562,11 @@
     <span class="t">QueryAvroReader</span> queryAvroReader(<span class="t">BigQuery</span> bigQuery, <span class="t">BigQueryReadClient</span> readClient) {
         <span class="k">return new</span> <span class="t">QueryAvroReader</span>(bigQuery, readClient);
     }
+
+    <span class="a">@Bean</span>
+    <span class="t">QueryArrowReader</span> queryArrowReader(<span class="t">BigQuery</span> bigQuery, <span class="t">BigQueryReadClient</span> readClient) {
+        <span class="k">return new</span> <span class="t">QueryArrowReader</span>(bigQuery, readClient);
+    }
 }</code></pre>
     </div>
     <div class="prose"><p><code>BigQueryConnection.google(...)</code> targets the Google endpoints; <code>BigQueryConnection.emulator(...)</code> targets an emulator. The <code>@ServiceConnection</code> of <code>bqkit-test</code> relies on the starter.</p></div>

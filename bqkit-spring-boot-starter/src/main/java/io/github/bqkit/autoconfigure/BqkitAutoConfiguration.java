@@ -4,6 +4,7 @@ import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import io.github.bqkit.core.BigQueryClients;
+import io.github.bqkit.core.BigQueryConnection;
 import io.github.bqkit.core.QueryArrowReader;
 import io.github.bqkit.core.QueryAvroReader;
 import java.util.Objects;
@@ -72,8 +73,15 @@ public class BqkitAutoConfiguration {
 
         private static final Log LOGGER = LogFactory.getLog(BqkitAutoConfiguration.class);
 
-        ForeignBigQueryConfiguration(BigQuery bigQuery, BqkitProperties properties) {
+        ForeignBigQueryConfiguration(BigQuery bigQuery, BqkitProperties properties,
+                                     BigQueryConnectionDetails details) {
             BigQueryOptions options = bigQuery.getOptions();
+            BigQueryConnection connection = details.connection();
+            if (connection.plaintext() && !Objects.equals(options.getHost(), connection.restHost())) {
+                LOGGER.warn("bqkit reads from the emulator at " + connection.grpcEndpoint() + " but queries run on "
+                        + options.getHost() + " with the BigQuery client bean that bqkit did not build: exclude the "
+                        + "auto-configuration that builds it, such as GcpBigQueryAutoConfiguration, in tests");
+            }
             boolean propertiesSet = Stream.of(properties.projectId(), properties.impersonateServiceAccount(),
                             properties.location())
                     .anyMatch(value -> Objects.nonNull(value) && !value.isBlank());

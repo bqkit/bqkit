@@ -25,7 +25,14 @@ import org.apache.arrow.vector.ipc.message.MessageResult;
 import org.apache.arrow.vector.ipc.message.MessageSerializer;
 import org.apache.arrow.vector.types.pojo.Schema;
 
-/** Reads a table through the Storage Read API in Arrow, one record batch at a time. */
+/**
+ * Reads a table through the Storage Read API in Arrow, one record batch at a time.
+ *
+ * <p>Only a SELECT statement writes a table to read: a DML, DDL or script job is rejected once it has run.
+ * With more than one stream, the streams are read in parallel on virtual threads, so the consumer is called
+ * from several threads at once and rows come in no guaranteed order: add an {@code ORDER BY} and read one
+ * stream to keep it.
+ */
 public final class QueryArrowReader {
 
     private final BigQuery bigQuery;
@@ -55,8 +62,9 @@ public final class QueryArrowReader {
     }
 
     /**
-     * Runs {@code configuration} as is, for query parameters, {@code maximumBytesBilled}, labels or location,
-     * then streams the table the job wrote to.
+     * Runs {@code configuration} as is, for query parameters, {@code maximumBytesBilled} or labels,
+     * then streams the table the job wrote to. The job runs in the location of the client, set with
+     * {@link BigQueryConnection#withLocation(String)}.
      */
     public void query(QueryJobConfiguration configuration, Consumer<VectorSchemaRoot> batches) {
         Objects.requireNonNull(configuration, "configuration");

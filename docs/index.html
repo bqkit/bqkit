@@ -653,7 +653,7 @@
         <text class="sub" x="415" y="182" text-anchor="middle">BigQuery · ReadClient</text>
 
         <rect class="box f-node" x="600" y="56" width="320" height="130" rx="14"/>
-        <text class="lbl" x="760" y="88" text-anchor="middle">goccy/bigquery-emulator 0.8.1</text>
+        <text class="lbl" x="760" y="88" text-anchor="middle">goccy/bigquery-emulator</text>
         <rect class="box f-accent row" x="624" y="106" width="130" height="56" rx="10"/>
         <text class="lbl" x="689" y="132" text-anchor="middle">REST</text>
         <text class="sub" x="689" y="150" text-anchor="middle">:9050</text>
@@ -666,7 +666,7 @@
         <path class="arrow flow" d="M532 164 C 570 164, 580 134, 620 134"/>
       </svg>
     </figure>
-    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>ghcr.io/goccy/bigquery-emulator:0.8.1</code> on project <code>testproject</code> and exposes the gRPC port of the Storage Read API. <code>@ServiceConnection</code> only accepts this container: the Testcontainers <code>BigQueryEmulatorContainer</code> does not expose the gRPC port.</p></div>
+    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>DEFAULT_IMAGE</code>, the goccy/bigquery-emulator image bqkit is tested against, on project <code>testproject</code> and exposes the gRPC port of the Storage Read API. <code>@ServiceConnection</code> only accepts this container: the Testcontainers <code>BigQueryEmulatorContainer</code> does not expose the gRPC port.</p></div>
 
     <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">A complete test</h3>
     <div class="prose"><p>The application code queries through <code>QueryAvroReader</code>:</p></div>
@@ -764,7 +764,7 @@
     <figure class="diagram reveal" style="margin-top:20px">
       <svg viewBox="0 0 960 256" role="img" aria-label="Running the same query twice into the same table: BigQuery keeps 2 rows, the emulator ends up with 4 rows.">
         <text class="lbl" x="240" y="30" text-anchor="middle">BigQuery</text>
-        <text class="lbl" x="720" y="30" text-anchor="middle">Emulator 0.8.1</text>
+        <text class="lbl" x="720" y="30" text-anchor="middle">Emulator</text>
         <line x1="480" y1="16" x2="480" y2="236" stroke="var(--line)" stroke-width="1.5"/>
 
         <text class="edge" x="40" y="70">after 1st</text>

@@ -2,6 +2,7 @@ package io.github.bqkit.core;
 
 import com.google.auth.Credentials;
 import com.google.cloud.NoCredentials;
+import java.util.Objects;
 
 /**
  * Where and how to reach BigQuery: the Google endpoints, or an emulator.
@@ -51,11 +52,13 @@ public final class BigQueryConnection {
     /**
      * Same connection, with the jobs run in {@code location}.
      *
-     * @param location location of the jobs, such as {@code EU} or {@code europe-west1}; {@code null} for none
+     * @param location location of the jobs, such as {@code EU} or {@code europe-west1}; {@code null} or blank for
+     *                 none
      * @return the connection in that location
      */
     public BigQueryConnection withLocation(String location) {
-        return new BigQueryConnection(projectId, restHost, grpcEndpoint, plaintext, credentials, location);
+        return new BigQueryConnection(projectId, restHost, grpcEndpoint, plaintext, credentials,
+                Objects.isNull(location) || location.isBlank() ? null : location);
     }
 
     /**

@@ -13,10 +13,18 @@ import org.junit.jupiter.api.Test;
 class PropertiesBigQueryConnectionDetailsTest {
 
     @Test
+    void connection_runs_the_jobs_in_the_configured_location() {
+        PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
+                new BqkitProperties("my-project", null, "EU"), NoCredentials::getInstance);
+
+        assertThat(details.connection().location()).isEqualTo("EU");
+    }
+
+    @Test
     void shares_the_credentials_between_the_clients() {
         AtomicInteger created = new AtomicInteger();
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
-                new BqkitProperties("my-project", null), () -> {
+                new BqkitProperties("my-project", null, null), () -> {
                     created.incrementAndGet();
                     return NoCredentials.getInstance();
                 });
@@ -33,7 +41,7 @@ class PropertiesBigQueryConnectionDetailsTest {
         AtomicInteger created = new AtomicInteger();
 
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
-                new BqkitProperties("my-project", null), () -> {
+                new BqkitProperties("my-project", null, null), () -> {
                     created.incrementAndGet();
                     return NoCredentials.getInstance();
                 });
@@ -49,7 +57,7 @@ class PropertiesBigQueryConnectionDetailsTest {
     void resolves_the_credentials_again_after_a_failure() {
         AtomicInteger attempts = new AtomicInteger();
         PropertiesBigQueryConnectionDetails details = new PropertiesBigQueryConnectionDetails(
-                new BqkitProperties("my-project", null), () -> {
+                new BqkitProperties("my-project", null, null), () -> {
                     if (attempts.incrementAndGet() == 1) {
                         throw new UncheckedIOException(new IOException("no Application Default Credentials"));
                     }

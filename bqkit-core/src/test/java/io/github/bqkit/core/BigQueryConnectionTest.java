@@ -34,4 +34,27 @@ class BigQueryConnectionTest {
         assertThat(connection.plaintext()).isTrue();
         assertThat(connection.credentials()).isSameAs(NoCredentials.getInstance());
     }
+
+    @Test
+    void a_connection_has_no_location_unless_one_is_given() {
+        BigQueryConnection connection = BigQueryConnection.google("my-project", NoCredentials.getInstance());
+
+        assertThat(connection.location()).isNull();
+    }
+
+    @Test
+    void with_location_returns_the_same_connection_in_that_location() {
+        BigQueryConnection emulator =
+                BigQueryConnection.emulator("testproject", "http://localhost:9050", "localhost:9060");
+
+        BigQueryConnection located = emulator.withLocation("EU");
+
+        assertThat(located.location()).isEqualTo("EU");
+        assertThat(located.projectId()).isEqualTo("testproject");
+        assertThat(located.restHost()).isEqualTo("http://localhost:9050");
+        assertThat(located.grpcEndpoint()).isEqualTo("localhost:9060");
+        assertThat(located.plaintext()).isTrue();
+        assertThat(located.credentials()).isSameAs(NoCredentials.getInstance());
+        assertThat(emulator.location()).isNull();
+    }
 }

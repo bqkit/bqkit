@@ -25,6 +25,7 @@ public final class BigQueryClients {
                 .setProjectId(connection.projectId())
                 .setCredentials(connection.credentials())
                 .setHost(connection.restHost())
+                .setLocation(connection.location())
                 .build()
                 .getService();
     }

@@ -475,7 +475,7 @@
       <div class="mod reveal"><code>query(sql, destination)</code><span>Truncates the destination table before writing, then reads it. Concurrent calls into the same destination table race: each one truncates the table, so a call can read the rows of another, or none. Give each call its own destination table, or use <code>query(sql)</code>, whose anonymous result table belongs to its job.</span></div>
       <div class="mod reveal"><code>query(sql)</code><span>Reads the anonymous result table that BigQuery creates for the job.</span></div>
       <div class="mod reveal"><code>readTable(table)</code><span>Reads an existing table. The read session is created in the connection project, which needs <code>bigquery.readsessions.create</code> and pays for the read, whatever the project of the table. The connection's service account also needs <code>bigquery.readsessions.getData</code> on the table.</span></div>
-      <div class="mod reveal"><code>query(configuration)</code><span>Runs a <code>QueryJobConfiguration</code> as is, for query parameters, <code>maximumBytesBilled</code>, labels or location, then reads the table the job wrote to. It sets no write disposition.</span></div>
+      <div class="mod reveal"><code>query(configuration)</code><span>Runs a <code>QueryJobConfiguration</code> as is, for query parameters, <code>maximumBytesBilled</code> or labels, then reads the table the job wrote to. It sets no write disposition, and the job runs in the location of the client. Only the result of a <code>SELECT</code> can be read.</span></div>
       <div class="mod reveal"><code>query(sql, destination, rows)</code><span>Same as <code>query(sql, destination)</code>, row by row to the callback.</span></div>
       <div class="mod reveal"><code>query(sql, rows)</code><span>Same as <code>query(sql)</code>, row by row to the callback.</span></div>
       <div class="mod reveal"><code>query(configuration, rows)</code><span>Same as <code>query(configuration)</code>, row by row to the callback.</span></div>
@@ -671,7 +671,7 @@
         <path class="arrow flow" d="M532 164 C 570 164, 580 134, 620 134"/>
       </svg>
     </figure>
-    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>DEFAULT_IMAGE</code>, the goccy/bigquery-emulator image bqkit is tested against, on project <code>testproject</code> and exposes the gRPC port of the Storage Read API. <code>@ServiceConnection</code> only accepts this container: the Testcontainers <code>BigQueryEmulatorContainer</code> does not expose the gRPC port.</p></div>
+    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>DEFAULT_IMAGE</code>, the goccy/bigquery-emulator image bqkit is tested against, on project <code>testproject</code> and exposes the gRPC port of the Storage Read API. <code>@ServiceConnection</code> only accepts this container: the Testcontainers <code>BigQueryEmulatorContainer</code> does not expose the gRPC port. To pull the image from a mirror, pass a <code>DockerImageName</code> declared with <code>asCompatibleSubstituteFor("ghcr.io/goccy/bigquery-emulator")</code>. With spring-cloud-gcp on the classpath, exclude <code>GcpBigQueryAutoConfiguration</code> in tests: its client would keep querying Google while bqkit reads from the emulator.</p></div>
 
     <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">A complete test</h3>
     <div class="prose"><p>The application code queries through <code>QueryAvroReader</code>:</p></div>
@@ -804,8 +804,8 @@
     <p class="reveal">The tests need Docker.</p>
     <div class="code reveal" style="max-width:420px; margin:26px auto 0; text-align:left">
       <div class="ct"><span class="tag">shell</span>
-        <button class="copy" data-copy="build">Copy</button></div>
-<pre id="build"><code>mvn verify</code></pre>
+        <button class="copy" data-copy="build-cmd">Copy</button></div>
+<pre id="build-cmd"><code>mvn verify</code></pre>
     </div>
     <div class="cta reveal" style="justify-content:center; margin-top:26px">
       <a class="btn primary" href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">View on GitHub</a>

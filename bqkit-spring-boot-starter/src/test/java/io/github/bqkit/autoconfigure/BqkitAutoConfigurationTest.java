@@ -1,14 +1,22 @@
 package io.github.bqkit.autoconfigure;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
+import com.google.cloud.bigquery.storage.v1.CreateReadSessionRequest;
 import io.github.bqkit.core.BigQueryConnection;
 import io.github.bqkit.core.QueryArrowReader;
 import io.github.bqkit.core.QueryAvroReader;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -33,7 +41,7 @@ class BqkitAutoConfigurationTest {
                             .getBean(BigQueryConnectionDetails.class)
                             .isInstanceOf(PropertiesBigQueryConnectionDetails.class);
                     assertThat(context.getBean(BqkitProperties.class)).isEqualTo(new BqkitProperties(
-                            "my-project", "reader@my-project.iam.gserviceaccount.com", "EU"));
+                            "my-project", "reader@my-project.iam.gserviceaccount.com", "EU", 1));
                 });
     }
 
@@ -48,6 +56,26 @@ class BqkitAutoConfigurationTest {
                     BigQuery bigQuery = context.getBean(BigQuery.class);
                     assertThat(bigQuery.getOptions().getProjectId()).isEqualTo("testproject");
                     assertThat(bigQuery.getOptions().getHost()).isEqualTo("http://localhost:9050");
+                });
+    }
+
+    @Test
+    void readers_read_as_many_streams_at_once_as_the_property_says() {
+        BigQueryReadClient readClient = mock(BigQueryReadClient.class);
+        when(readClient.createReadSession(any(CreateReadSessionRequest.class)))
+                .thenThrow(new IllegalStateException("no session"));
+        runner.withPropertyValues("bqkit.bigquery.max-read-streams=4")
+                .withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+                .withBean(BigQueryReadClient.class, () -> readClient)
+                .run(context -> {
+                    TableId table = TableId.of("shop", "products");
+                    assertThatThrownBy(() -> context.getBean(QueryAvroReader.class).readTable(table));
+                    assertThatThrownBy(() -> context.getBean(QueryArrowReader.class).readTable(table, batch -> { }));
+                    ArgumentCaptor<CreateReadSessionRequest> requests =
+                            ArgumentCaptor.forClass(CreateReadSessionRequest.class);
+                    verify(readClient, times(2)).createReadSession(requests.capture());
+                    assertThat(requests.getAllValues()).extracting(CreateReadSessionRequest::getMaxStreamCount)
+                            .containsExactly(4, 4);
                 });
     }
 

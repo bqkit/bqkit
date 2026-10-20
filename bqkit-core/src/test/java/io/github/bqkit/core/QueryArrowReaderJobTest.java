@@ -202,4 +202,19 @@ class QueryArrowReaderJobTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("BigQuery job wrote no destination table: only a SELECT statement can be read");
     }
+
+    @Test
+    void cannot_be_subclassed() {
+        assertThat(QueryArrowReader.class).isFinal();
+    }
+
+    @Test
+    void rejects_null_clients() {
+        assertThatThrownBy(() -> new QueryArrowReader(null, readClient))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("bigQuery");
+        assertThatThrownBy(() -> new QueryArrowReader(bigQuery, null, 2))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("readClient");
+    }
 }

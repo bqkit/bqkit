@@ -14,6 +14,7 @@ import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
 import com.google.cloud.bigquery.storage.v1.ReadStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -76,6 +77,34 @@ class ReadStreamsTest {
 
         verify(late).cancel();
         verify(late, never()).iterator();
+    }
+
+    @Test
+    void does_not_deliver_the_values_of_a_stream_once_another_stream_failed() {
+        CountDownLatch secondReading = new CountDownLatch(1);
+        CountDownLatch stopped = new CountDownLatch(1);
+        ServerStream<ReadRowsResponse> failing = streams.stream("stream-0", () -> { });
+        doAnswer(invocation -> {
+            stopped.countDown();
+            return null;
+        }).when(failing).cancel();
+        streams.stream("stream-1", () -> { });
+        IllegalStateException failure = new IllegalStateException("stream-0 failed");
+        List<String> delivered = new CopyOnWriteArrayList<>();
+
+        assertThatThrownBy(() -> ReadStreams.<String>read(readClient, TWO_STREAMS, delivered::add,
+                (responses, consumer) -> {
+                    if (responses == failing) {
+                        ReadStreamsStub.waitFor(secondReading);
+                        throw failure;
+                    }
+                    secondReading.countDown();
+                    ReadStreamsStub.waitFor(stopped);
+                    consumer.accept("late");
+                }))
+                .isSameAs(failure);
+
+        assertThat(delivered).isEmpty();
     }
 
     @Test

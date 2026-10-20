@@ -152,6 +152,10 @@ class QueryAvroReaderJobTest {
 
     @Test
     void runs_the_given_job_configuration_as_is() {
+        TableId written = TableId.of("my-project", "_anon", "anon_result");
+        doReturn(QueryJobConfiguration.newBuilder("SELECT 1").setDestinationTable(written).build())
+                .when(completed).getConfiguration();
+
         reader.query(CONFIGURED);
 
         ArgumentCaptor<JobInfo> submitted = ArgumentCaptor.forClass(JobInfo.class);
@@ -160,11 +164,15 @@ class QueryAvroReaderJobTest {
         ArgumentCaptor<CreateReadSessionRequest> request = ArgumentCaptor.forClass(CreateReadSessionRequest.class);
         verify(readClient).createReadSession(request.capture());
         assertThat(request.getValue().getReadSession().getTable())
-                .isEqualTo("projects/my-project/datasets/shop/tables/query_result");
+                .isEqualTo("projects/my-project/datasets/_anon/tables/anon_result");
     }
 
     @Test
     void streams_the_result_of_the_given_job_configuration_as_is() {
+        TableId written = TableId.of("my-project", "_anon", "anon_result");
+        doReturn(QueryJobConfiguration.newBuilder("SELECT 1").setDestinationTable(written).build())
+                .when(completed).getConfiguration();
+
         reader.query(CONFIGURED, row -> { });
 
         ArgumentCaptor<JobInfo> submitted = ArgumentCaptor.forClass(JobInfo.class);
@@ -173,7 +181,7 @@ class QueryAvroReaderJobTest {
         ArgumentCaptor<CreateReadSessionRequest> request = ArgumentCaptor.forClass(CreateReadSessionRequest.class);
         verify(readClient).createReadSession(request.capture());
         assertThat(request.getValue().getReadSession().getTable())
-                .isEqualTo("projects/my-project/datasets/shop/tables/query_result");
+                .isEqualTo("projects/my-project/datasets/_anon/tables/anon_result");
     }
 
     @Test

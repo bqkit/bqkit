@@ -57,7 +57,8 @@ public class BqkitAutoConfiguration {
     }
 
     private static void logForeignClient(BigQueryOptions options, BqkitProperties properties) {
-        boolean propertiesSet = Stream.of(properties.projectId(), properties.impersonateServiceAccount())
+        boolean propertiesSet = Stream.of(properties.projectId(), properties.impersonateServiceAccount(),
+                        properties.location())
                 .anyMatch(value -> Objects.nonNull(value) && !value.isBlank());
         if (propertiesSet) {
             LOGGER.warn("bqkit.bigquery.* do not apply: the BigQuery client bean was not built by bqkit; queries "

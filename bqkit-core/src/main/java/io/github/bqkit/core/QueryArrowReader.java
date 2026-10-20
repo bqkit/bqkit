@@ -55,6 +55,7 @@ public class QueryArrowReader {
      * then streams the table the job wrote to.
      */
     public void query(QueryJobConfiguration configuration, Consumer<VectorSchemaRoot> batches) {
+        Objects.requireNonNull(configuration, "configuration");
         Objects.requireNonNull(batches, "batches");
         readTable(QueryJobs.run(bigQuery, configuration), batches);
     }

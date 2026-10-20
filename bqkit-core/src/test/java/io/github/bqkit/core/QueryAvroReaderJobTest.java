@@ -185,6 +185,18 @@ class QueryAvroReaderJobTest {
     }
 
     @Test
+    void rejects_a_null_configuration_before_running_the_query() {
+        assertThatThrownBy(() -> reader.query((QueryJobConfiguration) null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("configuration");
+        assertThatThrownBy(() -> reader.query((QueryJobConfiguration) null, rows -> { }))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("configuration");
+
+        verify(bigQuery, never()).create(any(JobInfo.class));
+    }
+
+    @Test
     void rejects_a_null_consumer_before_opening_a_read_session() {
         assertThatThrownBy(() -> reader.readTable(TableId.of("shop", "products"), null))
                 .isInstanceOf(NullPointerException.class);

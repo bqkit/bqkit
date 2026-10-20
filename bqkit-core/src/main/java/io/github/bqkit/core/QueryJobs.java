@@ -25,23 +25,33 @@ final class QueryJobs {
                 .build();
     }
 
+    /** Cancels the job if the wait is interrupted, so that it does not keep running and billing. */
     static TableId run(BigQuery bigQuery, QueryJobConfiguration configuration) {
+        Job submitted = bigQuery.create(JobInfo.of(configuration));
+        Job job;
         try {
-            Job job = bigQuery.create(JobInfo.of(configuration)).waitFor();
-            if (Objects.isNull(job)) {
-                throw new IllegalStateException("BigQuery job not found");
-            }
-            if (Objects.nonNull(job.getStatus().getError())) {
-                throw new IllegalStateException("BigQuery job failed: " + job.getStatus().getError());
-            }
-            TableId destination = ((QueryJobConfiguration) job.getConfiguration()).getDestinationTable();
-            if (Objects.isNull(destination)) {
-                throw new IllegalStateException("BigQuery job has no destination table");
-            }
-            return destination;
+            job = submitted.waitFor();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException(e);
+            IllegalStateException interrupted = new IllegalStateException(e);
+            try {
+                submitted.cancel();
+            } catch (RuntimeException cancelFailure) {
+                interrupted.addSuppressed(cancelFailure);
+            }
+            throw interrupted;
         }
+        if (Objects.isNull(job)) {
+            throw new IllegalStateException("BigQuery job not found");
+        }
+        if (Objects.nonNull(job.getStatus().getError())) {
+            throw new IllegalStateException("BigQuery job failed: " + job.getStatus().getError());
+        }
+        TableId destination = ((QueryJobConfiguration) job.getConfiguration()).getDestinationTable();
+        if (Objects.isNull(destination)) {
+            throw new IllegalStateException(
+                    "BigQuery job wrote no destination table: only a SELECT statement can be read");
+        }
+        return destination;
     }
 }

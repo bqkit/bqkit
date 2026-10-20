@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -109,6 +110,29 @@ class QueryAvroReaderJobTest {
         assertThatThrownBy(() -> reader.query("SELECT 1", DESTINATION))
                 .isInstanceOf(IllegalStateException.class)
                 .hasCause(interruption);
+        assertThat(Thread.currentThread().isInterrupted()).isTrue();
+    }
+
+    @Test
+    void cancels_the_job_when_waiting_for_it_is_interrupted() throws InterruptedException {
+        when(job.waitFor()).thenThrow(new InterruptedException());
+
+        assertThatThrownBy(() -> reader.query("SELECT 1", DESTINATION)).isInstanceOf(IllegalStateException.class);
+        verify(job).cancel();
+        verify(readClient, never()).createReadSession(any(CreateReadSessionRequest.class));
+    }
+
+    @Test
+    void keeps_the_interruption_when_cancelling_the_job_fails_too() throws InterruptedException {
+        InterruptedException interruption = new InterruptedException();
+        when(job.waitFor()).thenThrow(interruption);
+        doThrow(new IllegalStateException("cancel failed")).when(job).cancel();
+
+        assertThatThrownBy(() -> reader.query("SELECT 1", DESTINATION))
+                .isInstanceOf(IllegalStateException.class)
+                .hasCause(interruption)
+                .satisfies(e -> assertThat(e.getSuppressed())
+                        .singleElement().extracting(Throwable::getMessage).isEqualTo("cancel failed"));
         assertThat(Thread.currentThread().isInterrupted()).isTrue();
     }
 
@@ -222,6 +246,6 @@ class QueryAvroReaderJobTest {
 
         assertThatThrownBy(() -> reader.query("SELECT 1"))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("BigQuery job has no destination table");
+                .hasMessage("BigQuery job wrote no destination table: only a SELECT statement can be read");
     }
 }

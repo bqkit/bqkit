@@ -29,7 +29,7 @@ final class QueryJobs {
 
     /**
      * The BigQuery emulator names the anonymous result table after the job id, and the Storage Read API turns that
-     * name into the Avro record name, which only accepts letters, digits and underscores, starting with a letter.
+     * name into the Avro record name, which only accepts letters, digits and underscores, starting with a letter or an underscore.
      * A client-generated UUID has hyphens and a server-generated id may start with a digit, so the id is fixed here.
      */
     private static JobId jobId() {

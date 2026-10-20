@@ -71,7 +71,7 @@ anonymous result table belongs to its job.
 
 `query(configuration)` runs a `QueryJobConfiguration` as is, for query parameters, `maximumBytesBilled`
 or labels. It sets no write disposition: set the destination and `WRITE_TRUNCATE` yourself if you need them.
-The job runs in the location of the client, `location` or `BigQueryConnection.withLocation(...)`.
+The job runs in the location of the client: `bqkit.bigquery.location` with the starter, or `BigQueryConnection.withLocation(...)`.
 
 Only the result of a `SELECT` can be read: a DML, DDL or script statement runs, then the reader fails, as
 the job wrote no table.

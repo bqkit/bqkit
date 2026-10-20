@@ -243,6 +243,11 @@ public class BigQueryConfig {
     QueryAvroReader queryAvroReader(BigQuery bigQuery, BigQueryReadClient readClient) {
         return new QueryAvroReader(bigQuery, readClient);
     }
+
+    @Bean
+    QueryArrowReader queryArrowReader(BigQuery bigQuery, BigQueryReadClient readClient) {
+        return new QueryArrowReader(bigQuery, readClient);
+    }
 }
 ```
 

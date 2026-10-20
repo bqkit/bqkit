@@ -3,6 +3,7 @@ package io.github.bqkit.core;
 import com.google.auth.Credentials;
 import com.google.cloud.NoCredentials;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Where and how to reach BigQuery: the Google endpoints, or an emulator.
@@ -13,11 +14,11 @@ public final class BigQueryConnection {
     private final String restHost;
     private final String grpcEndpoint;
     private final boolean plaintext;
-    private final Credentials credentials;
+    private final Supplier<Credentials> credentials;
     private final String location;
 
     private BigQueryConnection(String projectId, String restHost, String grpcEndpoint, boolean plaintext,
-            Credentials credentials, String location) {
+            Supplier<Credentials> credentials, String location) {
         this.projectId = projectId;
         this.restHost = restHost;
         this.grpcEndpoint = grpcEndpoint;
@@ -34,6 +35,17 @@ public final class BigQueryConnection {
      * @return the connection
      */
     public static BigQueryConnection google(String projectId, Credentials credentials) {
+        return google(projectId, () -> credentials);
+    }
+
+    /**
+     * Connection to the Google endpoints over TLS, with credentials resolved each time they are read.
+     *
+     * @param projectId   project that runs the jobs and owns the read sessions
+     * @param credentials supplies the credentials shared by the REST and gRPC clients
+     * @return the connection
+     */
+    public static BigQueryConnection google(String projectId, Supplier<Credentials> credentials) {
         return new BigQueryConnection(projectId, null, null, false, credentials, null);
     }
 
@@ -46,7 +58,7 @@ public final class BigQueryConnection {
      * @return the connection
      */
     public static BigQueryConnection emulator(String projectId, String restHost, String grpcEndpoint) {
-        return new BigQueryConnection(projectId, restHost, grpcEndpoint, true, NoCredentials.getInstance(), null);
+        return new BigQueryConnection(projectId, restHost, grpcEndpoint, true, NoCredentials::getInstance, null);
     }
 
     /**
@@ -103,7 +115,17 @@ public final class BigQueryConnection {
      * @return the credentials
      */
     public Credentials credentials() {
-        return credentials;
+        return credentials.get();
+    }
+
+    /**
+     * Same endpoints with other credentials, such as those of a BigQuery client built elsewhere.
+     *
+     * @param credentials credentials shared by the REST and gRPC clients
+     * @return the connection
+     */
+    public BigQueryConnection withCredentials(Credentials credentials) {
+        return new BigQueryConnection(projectId, restHost, grpcEndpoint, plaintext, () -> credentials, location);
     }
 
     /**

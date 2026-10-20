@@ -165,6 +165,8 @@ With more than one stream:
 - the callback is called by one stream at a time, so it does not have to be thread-safe, and a stream
   waiting for the callback requests no new response;
 - `QueryArrowReader` hands each stream its own batch: copy what you keep, as with a single stream;
+- a stream waiting for the callback holds the batch it decoded: with N streams, up to N decoded batches
+  stay in memory at once, off-heap for `QueryArrowReader`, so size the memory before raising the value;
 - the first failure, a row that cannot be decoded or a callback that throws, stops the read: the other
   streams are cancelled and that failure is thrown.
 

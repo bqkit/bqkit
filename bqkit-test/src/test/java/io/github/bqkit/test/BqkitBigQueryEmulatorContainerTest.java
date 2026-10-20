@@ -9,7 +9,7 @@ class BqkitBigQueryEmulatorContainerTest {
 
     @Test
     void default_image_is_the_one_set_by_the_build() {
-        String expected = ResourceBundle.getBundle("io.github.bqkit.test.expected-emulator").getString("expected-image");
+        String expected = ResourceBundle.getBundle("io.github.bqkit.test.bigquery-emulator").getString("image");
 
         assertThat(BqkitBigQueryEmulatorContainer.DEFAULT_IMAGE).isEqualTo(expected);
     }

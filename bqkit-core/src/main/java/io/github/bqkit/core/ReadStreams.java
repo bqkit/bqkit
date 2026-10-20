@@ -12,7 +12,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -66,16 +65,8 @@ final class ReadStreams<T> {
     }
 
     private void readAtOnce(List<ReadStream> streams) throws IOException {
-        ExecutorService threads = Executors.newVirtualThreadPerTaskExecutor();
-        try {
+        try (ExecutorService threads = Executors.newVirtualThreadPerTaskExecutor()) {
             streams.forEach(stream -> threads.execute(() -> readStream(stream)));
-            threads.shutdown();
-            threads.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            stop(new IllegalStateException("Interrupted while reading the table", e));
-            Thread.currentThread().interrupt();
-        } finally {
-            threads.close();
         }
         rethrow(failure.get());
     }

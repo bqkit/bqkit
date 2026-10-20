@@ -68,11 +68,13 @@ public class QueryAvroReader {
      * then reads the table the job wrote to.
      */
     public List<GenericRecord> query(QueryJobConfiguration configuration) {
+        Objects.requireNonNull(configuration, "configuration");
         return readTable(QueryJobs.run(bigQuery, configuration));
     }
 
     /** Streams the result of {@code configuration}, run as is, to {@code rows}. */
     public void query(QueryJobConfiguration configuration, Consumer<GenericRecord> rows) {
+        Objects.requireNonNull(configuration, "configuration");
         Objects.requireNonNull(rows, "rows");
         readTable(QueryJobs.run(bigQuery, configuration), rows);
     }

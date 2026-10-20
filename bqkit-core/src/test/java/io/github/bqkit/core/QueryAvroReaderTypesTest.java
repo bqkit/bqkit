@@ -57,7 +57,7 @@ class QueryAvroReaderTypesTest {
     private static final String BIGQUERY_STRING_TYPES_RECORD = """
             {"type": "record", "name": "__root__", "fields": [
               {"name": "created", "type": ["null", {"type": "string", "logicalType": "datetime"}]},
-              {"name": "payload", "type": ["null", {"type": "string", "logicalType": "Json"}]},
+              {"name": "payload", "type": ["null", {"type": "string", "sqlType": "JSON"}]},
               {"name": "place", "type": ["null", {"type": "string", "logicalType": "geography_wkt"}]}
             ]}""";
 

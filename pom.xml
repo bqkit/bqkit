@@ -147,6 +147,39 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.5.1</version>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.1</version>
+                    <executions>
+                        <execution>
+                            <id>license</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>copy-resources</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+                                <resources>
+                                    <resource>
+                                        <directory>${project.basedir}/..</directory>
+                                        <includes>
+                                            <include>LICENSE</include>
+                                            <include>NOTICE</include>
+                                        </includes>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
@@ -317,6 +350,10 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
             </plugin>
@@ -336,6 +373,19 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>no-sources</id>
+            <activation>
+                <file>
+                    <missing>${basedir}/src/main/java</missing>
+                </file>
+            </activation>
+            <properties>
+                <jacoco.skip>true</jacoco.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <maven.resources.skip>true</maven.resources.skip>
+            </properties>
+        </profile>
         <profile>
             <id>pitest</id>
             <build>

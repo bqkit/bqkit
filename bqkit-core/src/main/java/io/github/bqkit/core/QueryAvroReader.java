@@ -97,12 +97,13 @@ public class QueryAvroReader {
         Schema schema = new Schema.Parser().parse(session.getAvroSchema().getSchema());
         readStringsAsString(schema);
         GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema, schema, JAVA_TYPES);
+        BinaryDecoder decoder = null;
         for (ReadStream stream : session.getStreamsList()) {
             ReadRowsRequest request = ReadRowsRequest.newBuilder().setReadStream(stream.getName()).build();
             ServerStream<ReadRowsResponse> responses = readClient.readRowsCallable().call(request);
             try {
                 for (ReadRowsResponse response : responses) {
-                    decode(response, datumReader, rows);
+                    decoder = decode(response, datumReader, decoder, rows);
                 }
             } catch (RuntimeException | Error failure) {
                 ReadSessions.cancel(responses, failure);
@@ -132,14 +133,16 @@ public class QueryAvroReader {
         }
     }
 
-    private static void decode(ReadRowsResponse response, GenericDatumReader<GenericRecord> datumReader,
-                               Consumer<GenericRecord> rows) {
+    /** Reads the payload through a stream instead of copying it, and reuses {@code reused} and its buffer. */
+    private static BinaryDecoder decode(ReadRowsResponse response, GenericDatumReader<GenericRecord> datumReader,
+                                        BinaryDecoder reused, Consumer<GenericRecord> rows) {
         BinaryDecoder decoder = DecoderFactory.get()
-                .binaryDecoder(response.getAvroRows().getSerializedBinaryRows().toByteArray(), null);
+                .binaryDecoder(response.getAvroRows().getSerializedBinaryRows().newInput(), reused);
         try {
             while (!decoder.isEnd()) {
                 rows.accept(datumReader.read(null, decoder));
             }
+            return decoder;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

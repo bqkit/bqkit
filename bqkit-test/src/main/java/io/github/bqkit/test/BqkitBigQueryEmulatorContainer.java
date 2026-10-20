@@ -1,7 +1,7 @@
 package io.github.bqkit.test;
 
 import java.util.ResourceBundle;
-import org.testcontainers.containers.BigQueryEmulatorContainer;
+import org.testcontainers.gcloud.BigQueryEmulatorContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**

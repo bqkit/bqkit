@@ -13,7 +13,7 @@ import com.google.cloud.bigquery.TableInfo;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import org.testcontainers.containers.BigQueryEmulatorContainer;
+import org.testcontainers.gcloud.BigQueryEmulatorContainer;
 
 final class Emulator {
 

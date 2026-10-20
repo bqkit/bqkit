@@ -90,7 +90,7 @@ class BigQueryConnectionTest {
     void google_connection_resolves_supplied_credentials_only_when_they_are_read() {
         AtomicInteger resolved = new AtomicInteger();
 
-        BigQueryConnection connection = BigQueryConnection.google("my-project", () -> {
+        BigQueryConnection connection = BigQueryConnection.googleWithCredentialsSupplier("my-project", () -> {
             resolved.incrementAndGet();
             return NoCredentials.getInstance();
         });

@@ -32,12 +32,13 @@ final class QueryJobs {
         try {
             job = submitted.waitFor();
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             IllegalStateException interrupted = new IllegalStateException(e);
             try {
                 submitted.cancel();
             } catch (RuntimeException cancelFailure) {
                 interrupted.addSuppressed(cancelFailure);
+            } finally {
+                Thread.currentThread().interrupt();
             }
             throw interrupted;
         }

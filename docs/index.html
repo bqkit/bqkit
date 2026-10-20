@@ -540,7 +540,7 @@
     <span class="t">BigQueryConnection</span> bigQueryConnection(
             <span class="a">@Value</span>(<span class="s">"${bigquery.project-id}"</span>) <span class="t">String</span> projectId,
             <span class="a">@Value</span>(<span class="s">"${bigquery.impersonate-service-account:}"</span>) <span class="t">String</span> impersonateServiceAccount,
-            <span class="a">@Value</span>(<span class="s">"${bigquery.location:#{null}}"</span>) <span class="t">String</span> location) {
+            <span class="a">@Value</span>(<span class="s">"${bigquery.location:}"</span>) <span class="t">String</span> location) {
         <span class="k">return</span> <span class="t">BigQueryConnection</span>.google(projectId, <span class="t">CredentialsFactory</span>.create(impersonateServiceAccount))
                 .withLocation(location);
     }

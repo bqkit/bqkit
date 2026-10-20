@@ -24,7 +24,8 @@ class BqkitAutoConfigurationTest {
     void connection_details_come_from_properties_when_none_is_defined() {
         runner.withPropertyValues(
                         "bqkit.bigquery.project-id=my-project",
-                        "bqkit.bigquery.impersonate-service-account=reader@my-project.iam.gserviceaccount.com")
+                        "bqkit.bigquery.impersonate-service-account=reader@my-project.iam.gserviceaccount.com",
+                        "bqkit.bigquery.location=EU")
                 .withBean(BigQuery.class, () -> mock(BigQuery.class))
                 .withBean(BigQueryReadClient.class, () -> mock(BigQueryReadClient.class))
                 .run(context -> {
@@ -32,7 +33,7 @@ class BqkitAutoConfigurationTest {
                             .getBean(BigQueryConnectionDetails.class)
                             .isInstanceOf(PropertiesBigQueryConnectionDetails.class);
                     assertThat(context.getBean(BqkitProperties.class)).isEqualTo(new BqkitProperties(
-                            "my-project", "reader@my-project.iam.gserviceaccount.com"));
+                            "my-project", "reader@my-project.iam.gserviceaccount.com", "EU"));
                 });
     }
 

@@ -13,14 +13,16 @@ public final class BigQueryConnection {
     private final String grpcEndpoint;
     private final boolean plaintext;
     private final Credentials credentials;
+    private final String location;
 
-    private BigQueryConnection(
-            String projectId, String restHost, String grpcEndpoint, boolean plaintext, Credentials credentials) {
+    private BigQueryConnection(String projectId, String restHost, String grpcEndpoint, boolean plaintext,
+            Credentials credentials, String location) {
         this.projectId = projectId;
         this.restHost = restHost;
         this.grpcEndpoint = grpcEndpoint;
         this.plaintext = plaintext;
         this.credentials = credentials;
+        this.location = location;
     }
 
     /**
@@ -31,7 +33,7 @@ public final class BigQueryConnection {
      * @return the connection
      */
     public static BigQueryConnection google(String projectId, Credentials credentials) {
-        return new BigQueryConnection(projectId, null, null, false, credentials);
+        return new BigQueryConnection(projectId, null, null, false, credentials, null);
     }
 
     /**
@@ -43,7 +45,17 @@ public final class BigQueryConnection {
      * @return the connection
      */
     public static BigQueryConnection emulator(String projectId, String restHost, String grpcEndpoint) {
-        return new BigQueryConnection(projectId, restHost, grpcEndpoint, true, NoCredentials.getInstance());
+        return new BigQueryConnection(projectId, restHost, grpcEndpoint, true, NoCredentials.getInstance(), null);
+    }
+
+    /**
+     * Same connection, with the jobs run in {@code location}.
+     *
+     * @param location location of the jobs, such as {@code EU} or {@code europe-west1}; {@code null} for none
+     * @return the connection in that location
+     */
+    public BigQueryConnection withLocation(String location) {
+        return new BigQueryConnection(projectId, restHost, grpcEndpoint, plaintext, credentials, location);
     }
 
     /**
@@ -89,5 +101,14 @@ public final class BigQueryConnection {
      */
     public Credentials credentials() {
         return credentials;
+    }
+
+    /**
+     * Location of the jobs.
+     *
+     * @return the location, {@code null} to let BigQuery pick it from the tables of the query
+     */
+    public String location() {
+        return location;
     }
 }

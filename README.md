@@ -53,6 +53,7 @@ bqkit:
   bigquery:
     project-id: my-project
     impersonate-service-account: reader@my-project.iam.gserviceaccount.com # optional
+    location: EU # optional, location of the query jobs
 ```
 
 ```java
@@ -170,6 +171,7 @@ them in `application.yml`.
 bigquery:
   project-id: my-project
   impersonate-service-account: reader@my-project.iam.gserviceaccount.com # optional
+  location: EU # optional, location of the query jobs
 ```
 
 ```java
@@ -179,8 +181,10 @@ public class BigQueryConfig {
     @Bean
     BigQueryConnection bigQueryConnection(
             @Value("${bigquery.project-id}") String projectId,
-            @Value("${bigquery.impersonate-service-account:}") String impersonateServiceAccount) {
-        return BigQueryConnection.google(projectId, CredentialsFactory.create(impersonateServiceAccount));
+            @Value("${bigquery.impersonate-service-account:}") String impersonateServiceAccount,
+            @Value("${bigquery.location:#{null}}") String location) {
+        return BigQueryConnection.google(projectId, CredentialsFactory.create(impersonateServiceAccount))
+                .withLocation(location);
     }
 
     @Bean

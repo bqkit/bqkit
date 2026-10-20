@@ -1,15 +1,12 @@
 package io.github.bqkit.core;
 
-import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import com.google.cloud.bigquery.storage.v1.DataFormat;
-import com.google.cloud.bigquery.storage.v1.ReadRowsRequest;
 import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
-import com.google.cloud.bigquery.storage.v1.ReadStream;
 import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -33,10 +30,17 @@ public class QueryArrowReader {
 
     private final BigQuery bigQuery;
     private final BigQueryReadClient readClient;
+    private final int maxStreams;
 
+    /** Reads one stream at a time. */
     public QueryArrowReader(BigQuery bigQuery, BigQueryReadClient readClient) {
+        this(bigQuery, readClient, 1);
+    }
+
+    public QueryArrowReader(BigQuery bigQuery, BigQueryReadClient readClient, int maxStreams) {
         this.bigQuery = bigQuery;
         this.readClient = readClient;
+        this.maxStreams = ReadSessions.requirePositive(maxStreams);
     }
 
     public void query(String sql, Consumer<VectorSchemaRoot> batches) {
@@ -62,28 +66,23 @@ public class QueryArrowReader {
 
     /**
      * Hands each non-empty record batch to {@code batches}; the batch is released once the consumer returns.
-     * The same {@link VectorSchemaRoot} is reused for every batch: do not keep a reference to it, copy what you keep.
+     * Each stream reuses one {@link VectorSchemaRoot} for all its batches: do not keep a reference to it, copy what
+     * you keep.
      * Dictionary-encoded batches are rejected.
      */
     public void readTable(TableId table, Consumer<VectorSchemaRoot> batches) {
         Objects.requireNonNull(batches, "batches");
-        ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.ARROW);
-        try (BufferAllocator allocator = new RootAllocator();
-             VectorSchemaRoot root = VectorSchemaRoot.create(schema(session), allocator)) {
-            VectorLoader loader = new VectorLoader(root);
-            for (ReadStream stream : session.getStreamsList()) {
-                ReadRowsRequest request = ReadRowsRequest.newBuilder().setReadStream(stream.getName()).build();
-                ServerStream<ReadRowsResponse> responses = readClient.readRowsCallable().call(request);
-                try {
+        ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.ARROW, maxStreams);
+        try (BufferAllocator allocator = new RootAllocator()) {
+            Schema schema = schema(session);
+            ReadStreams.read(readClient, session.getStreamsList(), batches, (responses, consumer) -> {
+                try (VectorSchemaRoot root = VectorSchemaRoot.create(schema, allocator)) {
+                    VectorLoader loader = new VectorLoader(root);
                     for (ReadRowsResponse response : responses) {
-                        decode(response, allocator, loader, root, batches);
+                        decode(response, allocator, loader, root, consumer);
                     }
-                } catch (IOException | RuntimeException | Error failure) {
-                    ReadSessions.cancel(responses, failure);
-                    throw failure;
                 }
-                responses.cancel();
-            }
+            });
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

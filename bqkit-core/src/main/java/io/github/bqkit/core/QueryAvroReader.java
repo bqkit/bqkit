@@ -1,15 +1,12 @@
 package io.github.bqkit.core;
 
-import com.google.api.gax.rpc.ServerStream;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import com.google.cloud.bigquery.storage.v1.DataFormat;
-import com.google.cloud.bigquery.storage.v1.ReadRowsRequest;
 import com.google.cloud.bigquery.storage.v1.ReadRowsResponse;
 import com.google.cloud.bigquery.storage.v1.ReadSession;
-import com.google.cloud.bigquery.storage.v1.ReadStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -36,10 +33,17 @@ public class QueryAvroReader {
 
     private final BigQuery bigQuery;
     private final BigQueryReadClient readClient;
+    private final int maxStreams;
 
+    /** Reads one stream at a time. */
     public QueryAvroReader(BigQuery bigQuery, BigQueryReadClient readClient) {
+        this(bigQuery, readClient, 1);
+    }
+
+    public QueryAvroReader(BigQuery bigQuery, BigQueryReadClient readClient, int maxStreams) {
         this.bigQuery = bigQuery;
         this.readClient = readClient;
+        this.maxStreams = ReadSessions.requirePositive(maxStreams);
     }
 
     public List<GenericRecord> query(String sql) {
@@ -93,22 +97,18 @@ public class QueryAvroReader {
      */
     public void readTable(TableId table, Consumer<GenericRecord> rows) {
         Objects.requireNonNull(rows, "rows");
-        ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.AVRO);
+        ReadSession session = ReadSessions.create(bigQuery, readClient, table, DataFormat.AVRO, maxStreams);
         Schema schema = new Schema.Parser().parse(session.getAvroSchema().getSchema());
         readStringsAsString(schema);
-        GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema, schema, JAVA_TYPES);
-        for (ReadStream stream : session.getStreamsList()) {
-            ReadRowsRequest request = ReadRowsRequest.newBuilder().setReadStream(stream.getName()).build();
-            ServerStream<ReadRowsResponse> responses = readClient.readRowsCallable().call(request);
-            try {
+        try {
+            ReadStreams.read(readClient, session.getStreamsList(), rows, (responses, consumer) -> {
+                GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema, schema, JAVA_TYPES);
                 for (ReadRowsResponse response : responses) {
-                    decode(response, datumReader, rows);
+                    decode(response, datumReader, consumer);
                 }
-            } catch (RuntimeException | Error failure) {
-                ReadSessions.cancel(responses, failure);
-                throw failure;
-            }
-            responses.cancel();
+            });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 

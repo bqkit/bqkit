@@ -10,7 +10,7 @@ import com.google.cloud.bigquery.storage.v1.ReadSession;
 import java.util.Objects;
 
 /**
- * Opens a single-stream read session on a table and cancels its stream.
+ * Opens a read session on a table and cancels its streams.
  *
  * <p>The session is created in the connection project, which needs {@code bigquery.readsessions.create} and
  * pays for the read, whichever project owns the table. The project of the table is only the one that holds
@@ -22,7 +22,8 @@ final class ReadSessions {
     private ReadSessions() {
     }
 
-    static ReadSession create(BigQuery bigQuery, BigQueryReadClient readClient, TableId table, DataFormat format) {
+    static ReadSession create(BigQuery bigQuery, BigQueryReadClient readClient, TableId table, DataFormat format,
+                              int maxStreams) {
         String defaultProject = bigQuery.getOptions().getProjectId();
         String billingProject = Objects.requireNonNull(
                 Objects.nonNull(defaultProject) ? defaultProject : table.getProject(),
@@ -34,11 +35,18 @@ final class ReadSessions {
                         .setTable("projects/%s/datasets/%s/tables/%s"
                                 .formatted(tableProject, table.getDataset(), table.getTable()))
                         .setDataFormat(format))
-                .setMaxStreamCount(1)
+                .setMaxStreamCount(maxStreams)
                 .build());
     }
 
     /** Cancels the stream after a failed read: the failure of the read stays the one thrown. */
+    static int requirePositive(int maxStreams) {
+        if (maxStreams < 1) {
+            throw new IllegalArgumentException("maxStreams must be at least 1, was " + maxStreams);
+        }
+        return maxStreams;
+    }
+
     static void cancel(ServerStream<?> responses, Throwable failure) {
         try {
             responses.cancel();

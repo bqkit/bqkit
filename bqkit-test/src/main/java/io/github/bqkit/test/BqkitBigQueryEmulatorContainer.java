@@ -1,10 +1,6 @@
 package io.github.bqkit.test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.ResourceBundle;
 import org.testcontainers.containers.BigQueryEmulatorContainer;
 
 /**
@@ -37,13 +33,6 @@ public class BqkitBigQueryEmulatorContainer extends BigQueryEmulatorContainer {
     }
 
     private static String defaultImage() {
-        String resource = "bigquery-emulator.properties";
-        try (InputStream in = BqkitBigQueryEmulatorContainer.class.getResourceAsStream(resource)) {
-            Properties properties = new Properties();
-            properties.load(Objects.requireNonNull(in, resource));
-            return properties.getProperty("image");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return ResourceBundle.getBundle("io.github.bqkit.test.bigquery-emulator").getString("image");
     }
 }

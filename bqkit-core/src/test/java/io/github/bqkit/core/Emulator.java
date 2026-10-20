@@ -12,11 +12,12 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableInfo;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import org.testcontainers.containers.BigQueryEmulatorContainer;
 
 final class Emulator {
 
-    static final String IMAGE = System.getProperty("bigquery-emulator.image");
+    static final String IMAGE = ResourceBundle.getBundle("io.github.bqkit.core.bigquery-emulator").getString("image");
     static final String PROJECT_ID = "testproject";
     static final int GRPC_PORT = 9060;
     static final TableId PRODUCTS = TableId.of("shop", "products");

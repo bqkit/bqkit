@@ -183,9 +183,18 @@ them in `application.yml`.
 ### With spring-cloud-gcp
 
 With `spring-cloud-gcp-starter-bigquery` on the classpath, bqkit runs after it and reuses its `BigQuery`
-client: the queries run with the `spring.cloud.gcp.*` project and credentials. The Storage Read client
-still comes from `bqkit.bigquery.*`. Set the same project and credentials on both sides, or declare your
-own `BigQueryReadClient` bean, so the query and the read use the same identity.
+client. The Storage Read client takes the credentials of that client: the query and the read run with
+the `spring.cloud.gcp.*` project and credentials, and `bqkit.bigquery.*` does not apply. bqkit logs a
+warning at startup when `bqkit.bigquery.*` is set anyway.
+
+```yaml
+spring:
+  cloud:
+    gcp:
+      project-id: my-project
+      bigquery:
+        dataset-name: shop   # required by spring-cloud-gcp, whose BigQueryTemplate fails without it
+```
 
 ### Without the starter
 

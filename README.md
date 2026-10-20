@@ -176,6 +176,13 @@ bean replaces the connection built from the properties.
 The starter ships the configuration metadata of the `bqkit.*` keys: your IDE completes and documents
 them in `application.yml`.
 
+### With spring-cloud-gcp
+
+With `spring-cloud-gcp-starter-bigquery` on the classpath, bqkit runs after it and reuses its `BigQuery`
+client: the queries run with the `spring.cloud.gcp.*` project and credentials. The Storage Read client
+still comes from `bqkit.bigquery.*`. Set the same project and credentials on both sides, or declare your
+own `BigQueryReadClient` bean, so the query and the read use the same identity.
+
 ### Without the starter
 
 `bqkit-core` has no Spring dependency. Declare the beans yourself, with keys of your own in

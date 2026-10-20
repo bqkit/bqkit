@@ -58,6 +58,7 @@
         <spring-boot.version>3.5.16</spring-boot.version>
         <google-cloud-libraries-bom.version>26.90.0</google-cloud-libraries-bom.version>
         <avro.version>1.12.2</avro.version>
+        <spring-cloud-gcp.version>7.4.10</spring-cloud-gcp.version>
         <jacoco.version>0.8.15</jacoco.version>
         <checkstyle.version>13.4.0</checkstyle.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
@@ -88,6 +89,11 @@
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
                 <version>${avro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>spring-cloud-gcp-starter-bigquery</artifactId>
+                <version>${spring-cloud-gcp.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.bqkit</groupId>

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Bean;
  * BigQuery REST client, Storage Read client, {@link QueryAvroReader} and {@link QueryArrowReader},
  * each replaceable by an application bean.
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = "com.google.cloud.spring.autoconfigure.bigquery.GcpBigQueryAutoConfiguration")
 @ConditionalOnClass({BigQuery.class, BigQueryReadClient.class})
 @EnableConfigurationProperties(BqkitProperties.class)
 public class BqkitAutoConfiguration {

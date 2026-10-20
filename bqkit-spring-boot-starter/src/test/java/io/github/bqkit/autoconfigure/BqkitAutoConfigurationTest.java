@@ -8,10 +8,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.api.gax.core.CredentialsProvider;
+import com.google.auth.oauth2.AccessToken;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import com.google.cloud.bigquery.storage.v1.CreateReadSessionRequest;
+import com.google.cloud.spring.autoconfigure.bigquery.GcpBigQueryAutoConfiguration;
+import com.google.cloud.spring.autoconfigure.core.GcpContextAutoConfiguration;
 import io.github.bqkit.core.BigQueryConnection;
 import io.github.bqkit.core.QueryArrowReader;
 import io.github.bqkit.core.QueryAvroReader;
@@ -95,6 +100,26 @@ class BqkitAutoConfigurationTest {
                 .run(context -> {
                     assertThat(context.getBean(QueryArrowReader.class)).isSameAs(custom);
                     assertThat(context).hasSingleBean(QueryAvroReader.class);
+                });
+    }
+
+    @Test
+    void reuses_the_bigquery_client_of_spring_cloud_gcp_when_both_are_on_the_classpath() {
+        new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(BqkitAutoConfiguration.class,
+                        GcpBigQueryAutoConfiguration.class, GcpContextAutoConfiguration.class))
+                .withPropertyValues("spring.cloud.gcp.project-id=gcp-project",
+                        "spring.cloud.gcp.bigquery.dataset-name=shop")
+                .withBean(CredentialsProvider.class,
+                        () -> () -> GoogleCredentials.create(new AccessToken("token", null)))
+                .withBean(BigQueryConnectionDetails.class, () -> EMULATOR_DETAILS)
+                .run(context -> {
+                    assertThat(context).hasNotFailed()
+                            .hasSingleBean(BigQuery.class)
+                            .hasSingleBean(QueryAvroReader.class)
+                            .hasSingleBean(QueryArrowReader.class);
+                    assertThat(context.getBean(BigQuery.class).getOptions().getProjectId())
+                            .isEqualTo("gcp-project");
                 });
     }
 }

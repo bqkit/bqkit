@@ -173,7 +173,53 @@ class QueryAvroReaderReadSessionTest {
                         .singleElement().extracting(Throwable::getMessage).isEqualTo("cancel failed"));
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void reads_each_response_of_a_stream_from_its_own_start() {
+        ServerStream<ReadRowsResponse> responses = streamOf(NAME_RECORD);
+        when(responses.iterator()).thenReturn(List.of(row("a long first name"), row("pear")).iterator());
+
+        List<GenericRecord> records = new QueryAvroReader(bigQuery, readClient).readTable(TableId.of("shop", "products"));
+
+        assertThat(records).extracting(record -> record.get("name")).containsExactly("a long first name", "pear");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void reads_a_payload_whose_rows_span_several_chunks() {
+        ServerStream<ReadRowsResponse> responses = streamOf(NAME_RECORD);
+        ByteString payload = payload("x".repeat(200)).concat(payload("y".repeat(200)));
+        ByteString chunked = payload.substring(0, 150).concat(payload.substring(150));
+        assertThat(chunked.asReadOnlyByteBufferList()).hasSizeGreaterThan(1);
+        when(responses.iterator()).thenReturn(List.of(ReadRowsResponse.newBuilder()
+                .setAvroRows(AvroRows.newBuilder().setSerializedBinaryRows(chunked))
+                .build()).iterator());
+
+        List<GenericRecord> records = new QueryAvroReader(bigQuery, readClient).readTable(TableId.of("shop", "products"));
+
+        assertThat(records).extracting(record -> record.get("name")).containsExactly("x".repeat(200), "y".repeat(200));
+    }
+
+    @SuppressWarnings("unchecked")
+    private ServerStream<ReadRowsResponse> streamOf(String schema) {
+        when(readClient.createReadSession(any(CreateReadSessionRequest.class))).thenReturn(ReadSession.newBuilder()
+                .setAvroSchema(AvroSchema.newBuilder().setSchema(schema))
+                .addStreams(ReadStream.newBuilder().setName("stream-0"))
+                .build());
+        ServerStreamingCallable<ReadRowsRequest, ReadRowsResponse> readRows = mock(ServerStreamingCallable.class);
+        ServerStream<ReadRowsResponse> responses = mock(ServerStream.class);
+        when(readClient.readRowsCallable()).thenReturn(readRows);
+        when(readRows.call(any(ReadRowsRequest.class))).thenReturn(responses);
+        return responses;
+    }
+
     private static ReadRowsResponse row(String name) {
+        return ReadRowsResponse.newBuilder()
+                .setAvroRows(AvroRows.newBuilder().setSerializedBinaryRows(payload(name)))
+                .build();
+    }
+
+    private static ByteString payload(String name) {
         Schema schema = new Schema.Parser().parse(NAME_RECORD);
         GenericRecord record = new GenericData.Record(schema);
         record.put("name", name);
@@ -185,8 +231,6 @@ class QueryAvroReaderReadSessionTest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return ReadRowsResponse.newBuilder()
-                .setAvroRows(AvroRows.newBuilder().setSerializedBinaryRows(ByteString.copyFrom(bytes.toByteArray())))
-                .build();
+        return ByteString.copyFrom(bytes.toByteArray());
     }
 }

@@ -132,10 +132,11 @@ public class QueryAvroReader {
         }
     }
 
+    /** Reads the payload through a stream, without first copying it into one array. */
     private static void decode(ReadRowsResponse response, GenericDatumReader<GenericRecord> datumReader,
                                Consumer<GenericRecord> rows) {
         BinaryDecoder decoder = DecoderFactory.get()
-                .binaryDecoder(response.getAvroRows().getSerializedBinaryRows().toByteArray(), null);
+                .binaryDecoder(response.getAvroRows().getSerializedBinaryRows().newInput(), null);
         try {
             while (!decoder.isEnd()) {
                 rows.accept(datumReader.read(null, decoder));

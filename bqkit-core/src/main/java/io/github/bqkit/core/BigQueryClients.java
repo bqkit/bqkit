@@ -30,6 +30,7 @@ public final class BigQueryClients {
                 .getService();
     }
 
+    /** The caller owns the returned client and closes it, which shuts down its gRPC channel. */
     public static BigQueryReadClient readClient(BigQueryConnection connection) {
         Credentials credentials = connection.credentials();
         BigQueryReadSettings.Builder settings = BigQueryReadSettings.newBuilder()

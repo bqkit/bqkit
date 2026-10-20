@@ -22,7 +22,14 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
 
-/** Runs a query into a destination table, then reads that table through the Storage Read API in Avro. */
+/**
+ * Runs a query into a destination table, then reads that table through the Storage Read API in Avro.
+ *
+ * <p>Only a SELECT statement writes a table to read: a DML, DDL or script job is rejected once it has run.
+ * With more than one stream, the streams are read in parallel on virtual threads, so the consumer is called
+ * from several threads at once and rows come in no guaranteed order: add an {@code ORDER BY} and read one
+ * stream to keep it.
+ */
 public final class QueryAvroReader {
 
     /**
@@ -68,8 +75,9 @@ public final class QueryAvroReader {
     }
 
     /**
-     * Runs {@code configuration} as is, for query parameters, {@code maximumBytesBilled}, labels or location,
-     * then reads the table the job wrote to.
+     * Runs {@code configuration} as is, for query parameters, {@code maximumBytesBilled} or labels,
+     * then reads the table the job wrote to. The job runs in the location of the client, set with
+     * {@link BigQueryConnection#withLocation(String)}.
      */
     public List<GenericRecord> query(QueryJobConfiguration configuration) {
         Objects.requireNonNull(configuration, "configuration");

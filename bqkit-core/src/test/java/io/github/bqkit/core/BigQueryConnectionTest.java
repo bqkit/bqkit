@@ -59,9 +59,11 @@ class BigQueryConnectionTest {
     }
 
     @Test
-    void a_blank_location_means_no_location() {
-        BigQueryConnection connection = BigQueryConnection.google("my-project", NoCredentials.getInstance());
+    void a_null_or_blank_location_means_no_location() {
+        BigQueryConnection connection =
+                BigQueryConnection.google("my-project", NoCredentials.getInstance()).withLocation("EU");
 
+        assertThat(connection.withLocation(null).location()).isNull();
         assertThat(connection.withLocation("").location()).isNull();
         assertThat(connection.withLocation(" ").location()).isNull();
     }

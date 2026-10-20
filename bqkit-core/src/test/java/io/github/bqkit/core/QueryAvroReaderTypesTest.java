@@ -76,6 +76,9 @@ class QueryAvroReaderTypesTest {
               ]}]}
             ]}""";
 
+    private static final Schema STRING_TYPES_SCHEMA = new Schema.Parser().parse(BIGQUERY_STRING_TYPES_RECORD);
+    private static final Schema NESTED_STRUCT_SCHEMA = new Schema.Parser().parse(BIGQUERY_NESTED_STRUCT_RECORD);
+
     private static final Instant TS = Instant.parse("2026-10-20T08:30:00.123456Z");
     private static final LocalDate DAY = LocalDate.of(2026, 10, 20);
     private static final LocalTime HOUR = LocalTime.of(8, 30, 0, 123_456_000);
@@ -121,7 +124,7 @@ class QueryAvroReaderTypesTest {
 
     @Test
     void reads_datetime_json_and_geography_as_strings() {
-        GenericRecord row = readOne(BIGQUERY_STRING_TYPES_RECORD, encode(BIGQUERY_STRING_TYPES_RECORD, record -> {
+        GenericRecord row = readOne(STRING_TYPES_SCHEMA, encode(STRING_TYPES_SCHEMA, record -> {
             record.put("created", "2026-10-20T08:30:00.123456");
             record.put("payload", "{\"a\":[1,2,{\"b\":null}],\"é\":\"x\"}");
             record.put("place", "POINT(2.3522 48.8566)");
@@ -134,7 +137,7 @@ class QueryAvroReaderTypesTest {
 
     @Test
     void keeps_null_datetime_json_and_geography_null() {
-        GenericRecord row = readOne(BIGQUERY_STRING_TYPES_RECORD, encode(BIGQUERY_STRING_TYPES_RECORD, record -> { }));
+        GenericRecord row = readOne(STRING_TYPES_SCHEMA, encode(STRING_TYPES_SCHEMA, record -> { }));
 
         assertThat(row.get("created")).isNull();
         assertThat(row.get("payload")).isNull();
@@ -142,33 +145,42 @@ class QueryAvroReaderTypesTest {
     }
 
     @Test
-    void reads_nested_struct_with_java_types() {
-        Schema schema = new Schema.Parser().parse(BIGQUERY_NESTED_STRUCT_RECORD);
-        Schema customerSchema = schema.getField("customer").schema().getTypes().get(1);
-        Schema addressSchema = customerSchema.getField("address").schema().getTypes().get(1);
-        Schema phoneSchema = customerSchema.getField("phones").schema().getElementType();
+    void reads_struct_nested_in_struct_with_java_types() {
+        Schema addressSchema = addressSchema();
 
-        GenericRecord row = readOne(BIGQUERY_NESTED_STRUCT_RECORD, encode(BIGQUERY_NESTED_STRUCT_RECORD, record -> {
+        GenericRecord row = readOne(NESTED_STRUCT_SCHEMA, encode(NESTED_STRUCT_SCHEMA, record -> {
             GenericRecord address = new GenericData.Record(addressSchema);
             address.put("city", "Paris");
             address.put("since", (int) DAY.toEpochDay());
-            GenericRecord phone = new GenericData.Record(phoneSchema);
-            phone.put("number", "0102030405");
-            phone.put("seen", TS.getEpochSecond() * 1_000_000 + TS.getNano() / 1_000);
-            GenericRecord otherPhone = new GenericData.Record(phoneSchema);
-            GenericRecord customer = new GenericData.Record(customerSchema);
+            GenericRecord customer = new GenericData.Record(customerSchema());
             customer.put("name", "Ada");
             customer.put("address", address);
-            customer.put("phones", List.of(phone, otherPhone));
+            customer.put("phones", List.of());
             record.put("customer", customer);
         }));
 
         GenericRecord customer = (GenericRecord) row.get("customer");
         GenericRecord address = (GenericRecord) customer.get("address");
-        List<?> phones = (List<?>) customer.get("phones");
         assertThat(customer.get("name")).isEqualTo("Ada");
         assertThat(address.get("city")).isEqualTo("Paris");
         assertThat(address.get("since")).isEqualTo(DAY);
+    }
+
+    @Test
+    void reads_repeated_struct_with_java_types() {
+        Schema phoneSchema = nonNull(customerSchema().getField("phones").schema().getElementType());
+
+        GenericRecord row = readOne(NESTED_STRUCT_SCHEMA, encode(NESTED_STRUCT_SCHEMA, record -> {
+            GenericRecord phone = new GenericData.Record(phoneSchema);
+            phone.put("number", "0102030405");
+            phone.put("seen", TS.getEpochSecond() * 1_000_000 + TS.getNano() / 1_000);
+            GenericRecord otherPhone = new GenericData.Record(phoneSchema);
+            GenericRecord customer = new GenericData.Record(customerSchema());
+            customer.put("phones", List.of(phone, otherPhone));
+            record.put("customer", customer);
+        }));
+
+        List<?> phones = (List<?>) ((GenericRecord) row.get("customer")).get("phones");
         assertThat(phones).hasSize(2);
         assertThat(((GenericRecord) phones.get(0)).get("number")).isEqualTo("0102030405");
         assertThat(((GenericRecord) phones.get(0)).get("seen")).isEqualTo(TS);
@@ -178,14 +190,10 @@ class QueryAvroReaderTypesTest {
 
     @Test
     void keeps_null_struct_and_null_nested_struct_null() {
-        Schema schema = new Schema.Parser().parse(BIGQUERY_NESTED_STRUCT_RECORD);
-        Schema customerSchema = schema.getField("customer").schema().getTypes().get(1);
-
-        GenericRecord absent = readOne(BIGQUERY_NESTED_STRUCT_RECORD,
-                encode(BIGQUERY_NESTED_STRUCT_RECORD, record -> { }));
-        GenericRecord withoutAddress = readOne(BIGQUERY_NESTED_STRUCT_RECORD,
-                encode(BIGQUERY_NESTED_STRUCT_RECORD, record -> {
-                    GenericRecord customer = new GenericData.Record(customerSchema);
+        GenericRecord absent = readOne(NESTED_STRUCT_SCHEMA, encode(NESTED_STRUCT_SCHEMA, record -> { }));
+        GenericRecord withoutAddress = readOne(NESTED_STRUCT_SCHEMA,
+                encode(NESTED_STRUCT_SCHEMA, record -> {
+                    GenericRecord customer = new GenericData.Record(customerSchema());
                     customer.put("phones", List.of());
                     record.put("customer", customer);
                 }));
@@ -197,14 +205,32 @@ class QueryAvroReaderTypesTest {
         assertThat((List<?>) customer.get("phones")).isEmpty();
     }
 
+    private static Schema customerSchema() {
+        return nonNull(NESTED_STRUCT_SCHEMA.getField("customer").schema());
+    }
+
+    private static Schema addressSchema() {
+        return nonNull(customerSchema().getField("address").schema());
+    }
+
+    private static Schema nonNull(Schema nullable) {
+        if (nullable.getType() != Schema.Type.UNION) {
+            return nullable;
+        }
+        return nullable.getTypes().stream()
+                .filter(type -> type.getType() != Schema.Type.NULL)
+                .findFirst()
+                .orElseThrow();
+    }
+
     private GenericRecord readOne(ReadRowsResponse response) {
-        return readOne(BIGQUERY_RECORD, response);
+        return readOne(new Schema.Parser().parse(BIGQUERY_RECORD), response);
     }
 
     @SuppressWarnings("unchecked")
-    private GenericRecord readOne(String avroSchema, ReadRowsResponse response) {
+    private GenericRecord readOne(Schema avroSchema, ReadRowsResponse response) {
         when(readClient.createReadSession(any(CreateReadSessionRequest.class))).thenReturn(ReadSession.newBuilder()
-                .setAvroSchema(AvroSchema.newBuilder().setSchema(avroSchema))
+                .setAvroSchema(AvroSchema.newBuilder().setSchema(avroSchema.toString()))
                 .addStreams(ReadStream.newBuilder().setName("stream-0"))
                 .build());
         ServerStreamingCallable<ReadRowsRequest, ReadRowsResponse> readRows = mock(ServerStreamingCallable.class);
@@ -220,11 +246,10 @@ class QueryAvroReaderTypesTest {
     }
 
     private static ReadRowsResponse encode(Consumer<GenericRecord> values) {
-        return encode(BIGQUERY_RECORD, values);
+        return encode(new Schema.Parser().parse(BIGQUERY_RECORD), values);
     }
 
-    private static ReadRowsResponse encode(String avroSchema, Consumer<GenericRecord> values) {
-        Schema schema = new Schema.Parser().parse(avroSchema);
+    private static ReadRowsResponse encode(Schema schema, Consumer<GenericRecord> values) {
         GenericRecord record = new GenericData.Record(schema);
         values.accept(record);
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();

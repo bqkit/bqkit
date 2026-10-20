@@ -61,6 +61,16 @@ class QueryAvroReaderTest {
     }
 
     @Test
+    void reads_the_anonymous_result_table_of_a_query_every_time() {
+        for (int i = 0; i < 20; i++) {
+            List<GenericRecord> rows = reader.query(
+                    "SELECT name FROM `" + Emulator.PROJECT_ID + ".shop.products` WHERE id = 2");
+
+            assertThat(rows).extracting(r -> r.get("name").toString()).containsExactly("banana");
+        }
+    }
+
+    @Test
     void runs_a_query_into_an_explicit_destination_then_reads_it_in_avro() {
         List<GenericRecord> rows = reader.query(
                 "SELECT id, name FROM `" + Emulator.PROJECT_ID + ".shop.products` WHERE price > 1.5",

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,6 +81,23 @@ class QueryAvroReaderJobTest {
         QueryJobConfiguration configuration = submitted.getValue().getConfiguration();
         assertThat(configuration.getDestinationTable()).isEqualTo(DESTINATION);
         assertThat(configuration.getWriteDisposition()).isEqualTo(JobInfo.WriteDisposition.WRITE_TRUNCATE);
+    }
+
+    @Test
+    void names_every_job_with_an_avro_safe_id_because_the_result_table_name_becomes_the_avro_record_name() {
+        TableId anonymous = TableId.of("my-project", "_anon", "anon_result");
+        doReturn(QueryJobConfiguration.newBuilder("SELECT 1").setDestinationTable(anonymous).build())
+                .when(completed).getConfiguration();
+
+        reader.query("SELECT 1");
+        reader.query("SELECT 1", row -> { });
+        reader.query(CONFIGURED);
+
+        ArgumentCaptor<JobInfo> submitted = ArgumentCaptor.forClass(JobInfo.class);
+        verify(bigQuery, times(3)).create(submitted.capture());
+        assertThat(submitted.getAllValues()).extracting(info -> info.getJobId().getJob())
+                .allMatch(name -> name.matches("bqkit[0-9a-f]{32}"))
+                .doesNotHaveDuplicates();
     }
 
     @Test

@@ -32,7 +32,7 @@ class BigQueryEmulatorContainerConnectionDetailsFactoryTest {
         @Bean
         @ServiceConnection
         BigQueryEmulatorContainer emulator() {
-            return new BigQueryEmulatorContainer("ghcr.io/goccy/bigquery-emulator:0.8.1");
+            return new BigQueryEmulatorContainer(BqkitBigQueryEmulatorContainer.DEFAULT_IMAGE);
         }
     }
 }

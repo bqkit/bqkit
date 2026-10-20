@@ -1,5 +1,10 @@
 package io.github.bqkit.test;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.Objects;
+import java.util.Properties;
 import org.testcontainers.containers.BigQueryEmulatorContainer;
 
 /**
@@ -11,7 +16,7 @@ import org.testcontainers.containers.BigQueryEmulatorContainer;
  */
 public class BqkitBigQueryEmulatorContainer extends BigQueryEmulatorContainer {
 
-    public static final String DEFAULT_IMAGE = "ghcr.io/goccy/bigquery-emulator:0.8.1";
+    public static final String DEFAULT_IMAGE = defaultImage();
     public static final String PROJECT_ID = "testproject";
     public static final int HTTP_PORT = 9050;
     public static final int GRPC_PORT = 9060;
@@ -29,5 +34,16 @@ public class BqkitBigQueryEmulatorContainer extends BigQueryEmulatorContainer {
     @Override
     public String getProjectId() {
         return PROJECT_ID;
+    }
+
+    private static String defaultImage() {
+        String resource = "bigquery-emulator.properties";
+        try (InputStream in = BqkitBigQueryEmulatorContainer.class.getResourceAsStream(resource)) {
+            Properties properties = new Properties();
+            properties.load(Objects.requireNonNull(in, resource));
+            return properties.getProperty("image");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

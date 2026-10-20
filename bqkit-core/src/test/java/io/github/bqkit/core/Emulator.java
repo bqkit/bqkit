@@ -16,7 +16,7 @@ import org.testcontainers.containers.BigQueryEmulatorContainer;
 
 final class Emulator {
 
-    static final String IMAGE = "ghcr.io/goccy/bigquery-emulator:0.8.1";
+    static final String IMAGE = System.getProperty("bigquery-emulator.image");
     static final String PROJECT_ID = "testproject";
     static final int GRPC_PORT = 9060;
     static final TableId PRODUCTS = TableId.of("shop", "products");

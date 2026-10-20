@@ -3,6 +3,7 @@ package io.github.bqkit.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,7 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.storage.v1.BigQueryReadClient;
 import com.google.cloud.bigquery.storage.v1.CreateReadSessionRequest;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,6 +115,21 @@ class QueryArrowReaderJobTest {
         assertThatThrownBy(() -> reader.query("SELECT 1", DESTINATION, batch -> { })).isInstanceOf(IllegalStateException.class);
         verify(job).cancel();
         verify(readClient, never()).createReadSession(any(CreateReadSessionRequest.class));
+    }
+
+    @Test
+    void cancels_the_job_before_restoring_the_interruption() throws InterruptedException {
+        when(job.waitFor()).thenThrow(new InterruptedException());
+        AtomicBoolean interruptedWhileCancelling = new AtomicBoolean();
+        doAnswer(invocation -> {
+            interruptedWhileCancelling.set(Thread.currentThread().isInterrupted());
+            return true;
+        }).when(job).cancel();
+
+        assertThatThrownBy(() -> reader.query("SELECT 1", DESTINATION, batch -> { }))
+                .isInstanceOf(IllegalStateException.class);
+        assertThat(interruptedWhileCancelling).isFalse();
+        assertThat(Thread.currentThread().isInterrupted()).isTrue();
     }
 
     @Test

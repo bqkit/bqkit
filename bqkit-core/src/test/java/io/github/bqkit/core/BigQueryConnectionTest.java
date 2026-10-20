@@ -6,6 +6,7 @@ import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.NoCredentials;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 class BigQueryConnectionTest {
@@ -66,5 +67,37 @@ class BigQueryConnectionTest {
         assertThat(connection.withLocation(null).location()).isNull();
         assertThat(connection.withLocation("").location()).isNull();
         assertThat(connection.withLocation(" ").location()).isNull();
+    }
+
+    @Test
+    void with_credentials_keeps_the_endpoints_and_replaces_the_credentials() {
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken("token", new Date(Long.MAX_VALUE)));
+        BigQueryConnection emulator = BigQueryConnection
+                .emulator("testproject", "http://localhost:9050", "localhost:9060")
+                .withLocation("EU");
+
+        BigQueryConnection connection = emulator.withCredentials(credentials);
+
+        assertThat(connection.projectId()).isEqualTo("testproject");
+        assertThat(connection.restHost()).isEqualTo("http://localhost:9050");
+        assertThat(connection.grpcEndpoint()).isEqualTo("localhost:9060");
+        assertThat(connection.plaintext()).isTrue();
+        assertThat(connection.location()).isEqualTo("EU");
+        assertThat(connection.credentials()).isSameAs(credentials);
+    }
+
+    @Test
+    void google_connection_resolves_supplied_credentials_only_when_they_are_read() {
+        AtomicInteger resolved = new AtomicInteger();
+
+        BigQueryConnection connection = BigQueryConnection.google("my-project", () -> {
+            resolved.incrementAndGet();
+            return NoCredentials.getInstance();
+        });
+
+        assertThat(connection.projectId()).isEqualTo("my-project");
+        assertThat(resolved).hasValue(0);
+        assertThat(connection.credentials()).isSameAs(NoCredentials.getInstance());
+        assertThat(resolved).hasValue(1);
     }
 }

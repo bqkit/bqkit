@@ -2,7 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         child.project.url.inherit.append.path="false">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -12,8 +13,8 @@
     <packaging>pom</packaging>
 
     <name>bqkit</name>
-    <description>BigQuery for Spring Boot: Storage Read API in Avro, impersonation, and @ServiceConnection for the BigQuery emulator</description>
-    <url child.project.url.inherit.append.path="false">https://github.com/bqkit/bqkit</url>
+    <description>BigQuery for Spring Boot: Storage Read API in Avro or Arrow, impersonation, and @ServiceConnection for the BigQuery emulator</description>
+    <url>https://github.com/bqkit/bqkit</url>
 
     <licenses>
         <license>
@@ -36,8 +37,8 @@
     <scm child.scm.connection.inherit.append.path="false"
          child.scm.developerConnection.inherit.append.path="false"
          child.scm.url.inherit.append.path="false">
-        <connection>scm:git:git://github.com/bqkit/bqkit.git</connection>
-        <developerConnection>scm:git:ssh://github.com:bqkit/bqkit.git</developerConnection>
+        <connection>scm:git:https://github.com/bqkit/bqkit.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/bqkit/bqkit.git</developerConnection>
         <url>https://github.com/bqkit/bqkit</url>
         <tag>HEAD</tag>
     </scm>

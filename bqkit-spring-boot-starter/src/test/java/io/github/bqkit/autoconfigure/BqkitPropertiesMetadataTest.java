@@ -21,12 +21,15 @@ class BqkitPropertiesMetadataTest {
         DocumentContext metadata = JsonPath.parse(bqkitMetadata());
 
         assertThat(metadata.<List<String>>read("$.properties[*].name"))
-                .containsExactlyInAnyOrder("bqkit.bigquery.project-id", "bqkit.bigquery.impersonate-service-account");
+                .containsExactlyInAnyOrder("bqkit.bigquery.project-id", "bqkit.bigquery.impersonate-service-account",
+                        "bqkit.bigquery.location");
         assertThat(metadata.<List<String>>read("$.properties[?(@.name == 'bqkit.bigquery.project-id')].description"))
                 .singleElement().asString().containsIgnoringCase("project billed for the queries");
         assertThat(metadata.<List<String>>read(
                 "$.properties[?(@.name == 'bqkit.bigquery.impersonate-service-account')].description"))
                 .singleElement().asString().containsIgnoringCase("service account impersonated");
+        assertThat(metadata.<List<String>>read("$.properties[?(@.name == 'bqkit.bigquery.location')].description"))
+                .singleElement().asString().containsIgnoringCase("location of the query jobs");
     }
 
     private static String bqkitMetadata() throws IOException {

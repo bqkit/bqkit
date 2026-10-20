@@ -460,7 +460,8 @@
 <pre id="config"><code><span class="t">bqkit</span>:
   <span class="t">bigquery</span>:
     <span class="t">project-id</span>: <span class="s">my-project</span>
-    <span class="t">impersonate-service-account</span>: <span class="s">reader@my-project.iam.gserviceaccount.com</span> <span class="c"># optional</span></code></pre>
+    <span class="t">impersonate-service-account</span>: <span class="s">reader@my-project.iam.gserviceaccount.com</span> <span class="c"># optional</span>
+    <span class="t">location</span>: <span class="s">EU</span> <span class="c"># optional, location of the query jobs</span></code></pre>
       </div>
     </div>
     <div class="code reveal">
@@ -525,7 +526,8 @@
           <button class="copy" data-copy="core-config">Copy</button></div>
 <pre id="core-config"><code><span class="t">bigquery</span>:
   <span class="t">project-id</span>: <span class="s">my-project</span>
-  <span class="t">impersonate-service-account</span>: <span class="s">reader@my-project.iam.gserviceaccount.com</span> <span class="c"># optional</span></code></pre>
+  <span class="t">impersonate-service-account</span>: <span class="s">reader@my-project.iam.gserviceaccount.com</span> <span class="c"># optional</span>
+  <span class="t">location</span>: <span class="s">EU</span> <span class="c"># optional, location of the query jobs</span></code></pre>
       </div>
     </div>
     <div class="code reveal">
@@ -537,8 +539,10 @@
     <span class="a">@Bean</span>
     <span class="t">BigQueryConnection</span> bigQueryConnection(
             <span class="a">@Value</span>(<span class="s">"${bigquery.project-id}"</span>) <span class="t">String</span> projectId,
-            <span class="a">@Value</span>(<span class="s">"${bigquery.impersonate-service-account:}"</span>) <span class="t">String</span> impersonateServiceAccount) {
-        <span class="k">return</span> <span class="t">BigQueryConnection</span>.google(projectId, <span class="t">CredentialsFactory</span>.create(impersonateServiceAccount));
+            <span class="a">@Value</span>(<span class="s">"${bigquery.impersonate-service-account:}"</span>) <span class="t">String</span> impersonateServiceAccount,
+            <span class="a">@Value</span>(<span class="s">"${bigquery.location:#{null}}"</span>) <span class="t">String</span> location) {
+        <span class="k">return</span> <span class="t">BigQueryConnection</span>.google(projectId, <span class="t">CredentialsFactory</span>.create(impersonateServiceAccount))
+                .withLocation(location);
     }
 
     <span class="a">@Bean</span>

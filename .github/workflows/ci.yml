@@ -87,6 +87,10 @@ jobs:
         run: |
           major="${BRANCH#release/}"
           major="${major%.x}"
+          if ! [[ "$major" =~ ^[0-9]+$ ]]; then
+            echo "$BRANCH is not a release/N.x branch, no parity to check"
+            exit 0
+          fi
           if [ "$major" -le 1 ]; then
             echo "$BRANCH has no previous major"
             exit 0

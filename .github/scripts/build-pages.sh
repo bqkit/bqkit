@@ -33,7 +33,11 @@ majors=$(echo $built | tr ' ' '\n')
 released=$(for major in $majors; do
   grep -qE "^v${major%.x}\.[0-9]+\.[0-9]+$" "$published" && echo "$major"
 done || true)
-latest=$( [ -n "$released" ] && echo "$released" | tail -n 1 || echo "$majors" | head -n 1)
+if [ -n "$released" ]; then
+  latest=$(echo "$released" | tail -n 1)
+else
+  latest=$(echo "$majors" | head -n 1)
+fi
 printf '%s\n' $majors | sed 's/.*/"&"/' | paste -sd, - | sed 's/.*/[&]/' > "$out/versions.json"
 
 cat > "$out/index.html" <<HTML

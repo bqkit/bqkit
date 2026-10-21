@@ -3,8 +3,9 @@ name: Documentation
 on:
   push:
     branches: [ 'release/**' ]
-    tags: [ 'v*.*.*' ]
     paths: [ 'docs/**', '.github/scripts/build-pages.sh', '.github/workflows/pages.yml' ]
+  release:
+    types: [ published ]
   workflow_dispatch:
 
 permissions:
@@ -25,8 +26,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: List the published releases
+        run: |
+          gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 1000 \
+            --json tagName --jq '.[].tagName' > "$RUNNER_TEMP/published"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Assemble one documentation per major version
-        run: .github/scripts/build-pages.sh _site
+        run: .github/scripts/build-pages.sh _site "$RUNNER_TEMP/published"
 
       - name: Upload the site
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

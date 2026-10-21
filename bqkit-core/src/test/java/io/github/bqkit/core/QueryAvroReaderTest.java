@@ -22,7 +22,6 @@ import org.apache.avro.generic.GenericRecord;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.BigQueryEmulatorContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -128,7 +127,6 @@ class QueryAvroReaderTest {
     }
 
     @Test
-    @Disabled("bigquery-emulator 0.8.1 names the anonymous result table after the job id, an invalid Avro name: goccy/bigquery-emulator#527")
     void runs_a_query_then_reads_its_anonymous_result_table_in_avro() {
         List<GenericRecord> rows = reader.query(
                 "SELECT id, name FROM `" + Emulator.PROJECT_ID + ".shop.products` WHERE price > 1.5");

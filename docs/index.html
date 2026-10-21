@@ -754,10 +754,6 @@
         <p><strong>Hyphenated project ids break Avro reads.</strong> The emulator builds the Avro namespace from the project id, so <code>test-project</code> (the Testcontainers default) fails. <a href="https://github.com/testcontainers/testcontainers-java/pull/12123">testcontainers-java#12123</a> proposes <code>withProjectId</code>.</p>
         <p>bqkit uses <code>testproject</code>.</p>
       </div></div>
-      <div class="g reveal"><span class="tagk warn">query(sql)</span><div>
-        <p><strong><code>query(sql)</code> fails in Avro.</strong> The emulator names the anonymous result table after the job id, which is not a valid Avro name (<a href="https://github.com/goccy/bigquery-emulator/issues/527">bigquery-emulator#527</a>). <code>QueryArrowReader</code> is not affected.</p>
-        <p>Use <code>query(sql, destination)</code> in tests.</p>
-      </div></div>
       <div class="g reveal"><span class="tagk warn">truncate</span><div>
         <p><strong><code>WRITE_TRUNCATE</code> is ignored.</strong> <code>query(sql, destination)</code> appends to the destination table instead of replacing it, so a second query into the same table returns the rows of both.</p>
         <p>Use a distinct destination table per test, or drop it before each test.</p>

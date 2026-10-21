@@ -3,6 +3,7 @@ name: Documentation
 on:
   push:
     branches: [ 'release/**' ]
+    tags: [ 'v*.*.*' ]
     paths: [ 'docs/**', '.github/scripts/build-pages.sh', '.github/workflows/pages.yml' ]
   workflow_dispatch:
 

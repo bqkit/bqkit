@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "release/1.x"
     schedule:
       interval: "weekly"
     commit-message:
@@ -18,3 +19,20 @@ updates:
         update-types: [ "version-update:semver-major" ]
       - dependency-name: "org.springframework.boot:*"
         update-types: [ "version-update:semver-minor" ]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "release/2.x"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci(deps)"
+  - package-ecosystem: "maven"
+    directory: "/"
+    target-branch: "release/2.x"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build(deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: [ "version-update:semver-major" ]

@@ -6,6 +6,10 @@ set -euo pipefail
 head="${1:?usage: check-parity.sh <head ref> <previous major ref>}"
 previous="${2:?usage: check-parity.sh <head ref> <previous major ref>}"
 
+for ref in "$head" "$previous"; do
+  git rev-parse --verify --quiet "$ref^{commit}" >/dev/null || { echo "Unknown ref: $ref" >&2; exit 1; }
+done
+
 picked=$(git log --format=%B "$head" | sed -n 's/^(cherry picked from commit \([0-9a-f]\{40\}\))$/\1/p')
 missing=$(git cherry "$head" "$previous" | sed -n 's/^+ //p' | grep -vxF -f <(printf '%s\n' "$picked") || true)
 

@@ -24,10 +24,11 @@ done
 majors=$(echo $built | tr ' ' '\n')
 [ -n "$majors" ] || { echo "No release/N.x branch has docs/" >&2; exit 1; }
 
-# The root opens the latest major with a release, or the latest major before the first release.
+# The root opens the latest major with a release tag (vN.x.y, no pre-release suffix), or the latest
+# major before the first release.
 released=$(for major in $majors; do
-  [ -z "$(git tag -l "v${major%.x}.*")" ] || echo "$major"
-done)
+  git tag -l "v${major%.x}.*" | grep -qE "^v${major%.x}\.[0-9]+\.[0-9]+$" && echo "$major"
+done || true)
 latest=$(echo "${released:-$majors}" | tail -n 1)
 printf '%s\n' $majors | sed 's/.*/"&"/' | paste -sd, - | sed 's/.*/[&]/' > "$out/versions.json"
 

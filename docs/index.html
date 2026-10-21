@@ -3,17 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>bqkit 2.x</title>
-<link rel="icon" type="image/svg+xml" href="assets/logo-bq.svg">
-<link rel="apple-touch-icon" href="assets/logo-bq.png">
-<meta property="og:type" content="website">
-<meta property="og:title" content="bqkit">
-<meta property="og:description" content="Spring Boot integration for Google BigQuery, built around the Storage Read API, with a @ServiceConnection for the BigQuery emulator.">
-<meta property="og:url" content="https://bqkit.github.io/bqkit/@MAJOR@/">
-<meta property="og:image" content="https://bqkit.github.io/bqkit/@MAJOR@/assets/social-preview.png">
-<meta property="og:image:width" content="1280">
-<meta property="og:image:height" content="640">
-<meta name="twitter:card" content="summary_large_image">
+<title>bqkit</title>
 <meta name="description" content="Spring Boot integration for Google BigQuery, built around the Storage Read API, with a @ServiceConnection for the BigQuery emulator.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -114,7 +104,7 @@
     border-bottom: 1px solid var(--line);
   }
   .bar .wrap { display: flex; align-items: center; gap: 16px; height: 62px; }
-  .brand { display: flex; align-items: center; gap: 3px; font-family: var(--display); font-weight: 800; letter-spacing: -.02em; font-size: 18px; color: var(--ink); }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; letter-spacing: -.02em; font-size: 18px; color: var(--ink); }
   .brand:hover { text-decoration: none; }
   .brand svg { width: 26px; height: 26px; display: block; }
   .bar nav { margin-left: auto; display: flex; align-items: center; gap: 22px; }
@@ -274,18 +264,22 @@
 <header class="bar">
   <div class="wrap">
     <a class="brand" href="#top">
-      <svg viewBox="0 0 512 512" aria-hidden="true">
-        <rect width="512" height="512" rx="112" fill="var(--ink)"/>
-        <g transform="translate(-14 -44)" fill="none" stroke="var(--bg)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="185" cy="300" r="70"/><path d="M115 300V130"/>
-          <circle cx="355" cy="300" r="70"/><path d="M425 300V470"/>
-        </g>
+      <svg viewBox="0 0 56 56" aria-hidden="true">
+        <rect width="56" height="56" rx="13" fill="var(--accent)"/>
+        <circle cx="25" cy="25" r="12" fill="none" stroke="#fff" stroke-width="4"/>
+        <line x1="34" y1="34" x2="44" y2="44" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+        <rect x="19" y="25" width="3.5" height="6" rx="1" fill="#fff"/>
+        <rect x="23.5" y="20" width="3.5" height="11" rx="1" fill="#fff"/>
+        <rect x="28" y="22.5" width="3.5" height="8.5" rx="1" fill="#fff"/>
       </svg>
-      kit
+      bqkit
     </a>
     <nav aria-label="Sections">
-      <a class="nl" href="#contents">Contents</a>
-      <a class="nl" href="../1.x/">1.x docs</a>
+      <a class="nl" href="#why">Why</a>
+      <a class="nl" href="#read-path">Read path</a>
+      <a class="nl" href="#usage">Usage</a>
+      <a class="nl" href="#testing">Testing</a>
+      <a class="nl" href="#emulator-limits">Limits</a>
       <select class="vsel" id="versionSelect" aria-label="Documentation version" hidden></select>
       <a class="ghbtn" href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.11.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
@@ -298,45 +292,472 @@
 
 <a id="top"></a>
 <section class="hero">
-  <div class="wrap">
-    <div class="eyebrow">bqkit 2.x · Coming soon</div>
-    <h1 class="title">bqkit for Spring Boot 4.</h1>
-    <p class="lede">bqkit 2.x brings the features of 1.x to Spring Boot 4. It is not released yet: until then, use bqkit 1.0.x with Spring Boot 3.5.</p>
-    <div class="pills">
-      <span class="pill">Coming soon</span>
-      <span class="pill">Java 21</span>
-      <span class="pill">Spring Boot 4</span>
-      <span class="pill">Apache-2.0</span>
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">BigQuery for Spring Boot</div>
+      <h1 class="title">Read BigQuery in Avro,<br>test it on an emulator.</h1>
+      <p class="lede">Spring Boot integration for Google BigQuery, built around the Storage Read API, with an emulator you can test against.</p>
+      <div class="pills">
+        <span class="pill">Java 21</span>
+        <span class="pill">Spring Boot 3.5</span>
+        <span class="pill">Storage Read API · Avro</span>
+        <span class="pill">Testcontainers</span>
+        <span class="pill">Apache-2.0</span>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="#usage">Get started</a>
+        <a class="btn ghost" href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
     </div>
-    <div class="cta">
-      <a class="btn primary" href="#contents">What 2.x will contain</a>
-      <a class="btn ghost" href="../1.x/">Read the 1.x docs</a>
+
+    <div class="code">
+      <div class="ct"><span class="dot a"></span><span class="dot b"></span><span class="dot c"></span><span style="margin-left:6px">ProductRepository.java</span></div>
+<pre><code><span class="t">List</span>&lt;<span class="t">GenericRecord</span>&gt; rows = reader.query(
+        <span class="s">"SELECT name FROM `my-project.shop.products` WHERE price &gt; 1.5"</span>,
+        <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"query_result"</span>));</code></pre>
     </div>
   </div>
 </section>
 
-<section id="contents" class="band">
+<section id="why">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="eyebrow">What 2.x will contain</div>
-      <h2>The 1.x features, on Spring Boot 4.</h2>
-      <p>Each major version of bqkit targets one Spring Boot generation. 2.x keeps the modules of 1.x.</p>
+      <div class="eyebrow">Why bqkit</div>
+      <h2>Skip the REST pagination, stream the rows.</h2>
+      <p>Reading a large query result through the BigQuery REST API is slow. The Storage Read API streams rows in Avro over gRPC instead. bqkit wires that path into Spring Boot.</p>
     </div>
     <div class="features">
-      <div class="card reveal"><h3>Storage Read API</h3><p>Run a query into a destination table, then stream that table in Avro through <code>BigQueryReadClient</code>.</p></div>
-      <div class="card reveal"><h3>Impersonation</h3><p>Optional service account impersonation on top of the Application Default Credentials.</p></div>
-      <div class="card reveal"><h3>Auto-configuration</h3><p>The <code>bqkit.bigquery.*</code> properties in <code>application.yml</code>, with their metadata for the IDE.</p></div>
-      <div class="card reveal"><h3>Emulator tests</h3><p>A <code>@ServiceConnection</code> for the BigQuery emulator with Testcontainers.</p></div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><path d="M17 15l3 3-3 3"/></svg></div>
+        <h3>Query to Avro</h3>
+        <p>Run a query into a destination table, then stream it in Avro through <code>BigQueryReadClient</code>.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h3>Impersonation</h3>
+        <p>Application Default Credentials, with optional service account impersonation.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/></svg></div>
+        <h3>Emulator tests</h3>
+        <p>A <code>@ServiceConnection</code> for the BigQuery emulator with Testcontainers: no GCP project needed.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Backs off</h3>
+        <p>Every bean steps aside when your application defines its own.</p>
+      </div>
     </div>
-    <div class="mods" style="margin-top:28px">
+  </div>
+</section>
+
+<section id="read-path" class="band">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The read path</div>
+      <h2>One call, three steps.</h2>
+      <p>One call to <code>query(sql, destination)</code> runs a query job, lands the result in a table, then streams that table in Avro.</p>
+    </div>
+    <figure class="diagram reveal">
+      <svg viewBox="0 0 960 300" role="img" aria-label="Read path: the application calls QueryAvroReader, which runs a query job into a destination table, opens a Storage Read session on it and decodes the Avro stream into GenericRecord rows.">
+        <defs>
+          <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="var(--muted)"/>
+          </marker>
+        </defs>
+        <rect class="zone" x="300" y="14" width="646" height="272" rx="18"/>
+        <text class="zlbl" x="322" y="38">GOOGLE BIGQUERY</text>
+
+        <rect class="box f-node" x="14" y="40" width="230" height="84" rx="12"/>
+        <text class="lbl" x="129" y="76" text-anchor="middle">Your application</text>
+        <text class="sub" x="129" y="100" text-anchor="middle">reader.query(sql, table)</text>
+
+        <rect class="box f-accent" x="14" y="176" width="230" height="84" rx="12"/>
+        <text class="lbl" x="129" y="212" text-anchor="middle">QueryAvroReader</text>
+        <text class="sub" x="129" y="236" text-anchor="middle">bqkit-core</text>
+        <path class="arrow" d="M129 126 V172"/>
+
+        <rect class="box f-node" x="350" y="56" width="240" height="72" rx="12"/>
+        <text class="lbl" x="470" y="88" text-anchor="middle">Query job</text>
+        <text class="sub" x="470" y="110" text-anchor="middle">REST · WRITE_TRUNCATE</text>
+
+        <rect class="box f-node" x="680" y="56" width="240" height="72" rx="12"/>
+        <text class="lbl" x="800" y="88" text-anchor="middle">Destination table</text>
+        <text class="sub" x="800" y="110" text-anchor="middle">shop.query_result</text>
+
+        <rect class="box f-accent" x="680" y="190" width="240" height="72" rx="12"/>
+        <text class="lbl" x="800" y="222" text-anchor="middle">Storage Read session</text>
+        <text class="sub" x="800" y="244" text-anchor="middle">gRPC · Avro stream</text>
+
+        <rect class="box f-ok" x="350" y="190" width="240" height="72" rx="12"/>
+        <text class="lbl" x="470" y="222" text-anchor="middle">List&lt;GenericRecord&gt;</text>
+        <text class="sub" x="470" y="244" text-anchor="middle">decoded rows</text>
+
+        <path class="arrow" d="M246 200 C 300 200, 300 92, 346 92"/>
+        <path class="arrow" d="M592 92 H676"/>
+        <path class="arrow" d="M800 130 V186"/>
+        <path class="arrow flow" d="M678 226 H594"/>
+        <path class="arrow dash" d="M348 240 C 300 240, 290 240, 248 236"/>
+
+        <circle cx="320" cy="140" r="12" fill="var(--accent)"/><text class="num" x="320" y="144.5" text-anchor="middle">1</text>
+        <circle cx="634" cy="72" r="12" fill="var(--accent)"/><text class="num" x="634" y="76.5" text-anchor="middle">2</text>
+        <circle cx="636" cy="206" r="12" fill="var(--accent)"/><text class="num" x="636" y="210.5" text-anchor="middle">3</text>
+      </svg>
+      <figcaption>1. Run the query · 2. Results land in the destination table · 3. Stream the table in Avro and decode it</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="modules">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Modules</div>
+      <h2>Take only what you need.</h2>
+      <p>Use the core alone, or let the starter wire it for you.</p>
+    </div>
+    <div class="mods">
       <div class="mod reveal"><code>bqkit-core</code><span>Spring-free clients: <code>BigQueryClients</code>, <code>CredentialsFactory</code>, <code>QueryAvroReader</code>.</span></div>
-      <div class="mod reveal"><code>bqkit-spring-boot-starter</code><span>Auto-configuration of <code>BigQuery</code>, <code>BigQueryReadClient</code> and <code>QueryAvroReader</code>, for Spring Boot 4.</span></div>
+      <div class="mod reveal"><code>bqkit-spring-boot-starter</code><span>Auto-configuration of <code>BigQuery</code>, <code>BigQueryReadClient</code> and <code>QueryAvroReader</code>.</span></div>
       <div class="mod reveal"><code>bqkit-test</code><span>Emulator container and <code>@ServiceConnection</code> support for tests.</span></div>
     </div>
-    <ul class="versions" style="margin-top:22px">
+  </div>
+</section>
+
+<section id="usage" class="band">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Usage</div>
+      <h2>Add the starter, set a project, query.</h2>
+      <p>Each major version of bqkit targets one Spring Boot generation.</p>
+    </div>
+    <p class="note" id="unreleased"><span class="tagk warn">unreleased</span><span>bqkit is not released yet: build it locally with <code>mvn install</code>.</span></p>
+    <ul class="versions">
       <li>bqkit 1.0.x: Spring Boot 3.5, Java 21. This line only receives fixes.</li>
-      <li>bqkit 2.x: Spring Boot 4, Java 21. Coming soon.</li>
+      <li>bqkit 2.x: Spring Boot 4 (planned).</li>
     </ul>
+    <div class="code-grid">
+      <div class="code reveal">
+        <div class="ct"><span class="tag">pom.xml</span> — 1. add the starter
+          <button class="copy" data-copy="starter">Copy</button></div>
+<pre id="starter"><code><span class="t">&lt;dependency&gt;</span>
+    <span class="t">&lt;groupId&gt;</span>io.github.bqkit<span class="t">&lt;/groupId&gt;</span>
+    <span class="t">&lt;artifactId&gt;</span>bqkit-spring-boot-starter<span class="t">&lt;/artifactId&gt;</span>
+    <span class="t">&lt;version&gt;</span><span class="bqkit-version">${bqkit.version}</span><span class="t">&lt;/version&gt;</span>
+<span class="t">&lt;/dependency&gt;</span></code></pre>
+      </div>
+      <div class="code reveal">
+        <div class="ct"><span class="tag">application.yml</span> — 2. configure
+          <button class="copy" data-copy="config">Copy</button></div>
+<pre id="config"><code><span class="t">bqkit</span>:
+  <span class="t">bigquery</span>:
+    <span class="t">project-id</span>: <span class="s">my-project</span>
+    <span class="t">impersonate-service-account</span>: <span class="s">reader@my-project.iam.gserviceaccount.com</span> <span class="c"># optional</span></code></pre>
+      </div>
+    </div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — 3. query
+        <button class="copy" data-copy="query">Copy</button></div>
+<pre id="query"><code><span class="t">List</span>&lt;<span class="t">GenericRecord</span>&gt; rows = reader.query(
+        <span class="s">"SELECT name FROM `my-project.shop.products` WHERE price &gt; 1.5"</span>,
+        <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"query_result"</span>));</code></pre>
+    </div>
+    <div class="mods">
+      <div class="mod reveal"><code>query(sql, destination)</code><span>Truncates the destination table before writing, then reads it.</span></div>
+      <div class="mod reveal"><code>query(sql)</code><span>Reads the anonymous result table that BigQuery creates for the job.</span></div>
+      <div class="mod reveal"><code>readTable(table)</code><span>Reads an existing table.</span></div>
+    </div>
+    <div class="prose"><p>Every bean backs off when the application defines its own. Defining a <code>BigQueryConnectionDetails</code> bean replaces the connection built from the properties.</p></div>
+
+    <div class="prose"><p>The starter ships the configuration metadata of the <code>bqkit.*</code> keys: your IDE completes and documents them in <code>application.yml</code>.</p></div>
+
+    <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">Without the starter</h3>
+    <div class="prose"><p><code>bqkit-core</code> has no Spring dependency. Declare the beans yourself, with keys of your own in <code>application.yml</code>:</p></div>
+    <div class="code-grid">
+      <div class="code reveal">
+        <div class="ct"><span class="tag">pom.xml</span> — core only
+          <button class="copy" data-copy="core-dep">Copy</button></div>
+<pre id="core-dep"><code><span class="t">&lt;dependency&gt;</span>
+    <span class="t">&lt;groupId&gt;</span>io.github.bqkit<span class="t">&lt;/groupId&gt;</span>
+    <span class="t">&lt;artifactId&gt;</span>bqkit-core<span class="t">&lt;/artifactId&gt;</span>
+    <span class="t">&lt;version&gt;</span><span class="bqkit-version">${bqkit.version}</span><span class="t">&lt;/version&gt;</span>
+<span class="t">&lt;/dependency&gt;</span></code></pre>
+      </div>
+      <div class="code reveal">
+        <div class="ct"><span class="tag">application.yml</span> — your own keys
+          <button class="copy" data-copy="core-config">Copy</button></div>
+<pre id="core-config"><code><span class="t">bigquery</span>:
+  <span class="t">project-id</span>: <span class="s">my-project</span>
+  <span class="t">impersonate-service-account</span>: <span class="s">reader@my-project.iam.gserviceaccount.com</span> <span class="c"># optional</span></code></pre>
+      </div>
+    </div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — BigQueryConfig
+        <button class="copy" data-copy="core-beans">Copy</button></div>
+<pre id="core-beans"><code><span class="a">@Configuration</span>
+<span class="k">public class</span> <span class="t">BigQueryConfig</span> {
+
+    <span class="a">@Bean</span>
+    <span class="t">BigQueryConnection</span> bigQueryConnection(
+            <span class="a">@Value</span>(<span class="s">"${bigquery.project-id}"</span>) <span class="t">String</span> projectId,
+            <span class="a">@Value</span>(<span class="s">"${bigquery.impersonate-service-account:}"</span>) <span class="t">String</span> impersonateServiceAccount) {
+        <span class="k">return new</span> <span class="t">BigQueryConnection</span>(projectId, <span class="k">null</span>, <span class="k">null</span>, <span class="k">false</span>,
+                <span class="t">CredentialsFactory</span>.create(impersonateServiceAccount));
+    }
+
+    <span class="a">@Bean</span>
+    <span class="t">BigQuery</span> bigQuery(<span class="t">BigQueryConnection</span> connection) {
+        <span class="k">return</span> <span class="t">BigQueryClients</span>.bigQuery(connection);
+    }
+
+    <span class="a">@Bean</span>(destroyMethod = <span class="s">"close"</span>)
+    <span class="t">BigQueryReadClient</span> bigQueryReadClient(<span class="t">BigQueryConnection</span> connection) {
+        <span class="k">return</span> <span class="t">BigQueryClients</span>.readClient(connection);
+    }
+
+    <span class="a">@Bean</span>
+    <span class="t">QueryAvroReader</span> queryAvroReader(<span class="t">BigQuery</span> bigQuery, <span class="t">BigQueryReadClient</span> readClient) {
+        <span class="k">return new</span> <span class="t">QueryAvroReader</span>(bigQuery, readClient);
+    }
+}</code></pre>
+    </div>
+    <div class="prose"><p>The <code>null</code> hosts select the Google endpoints. The <code>@ServiceConnection</code> of <code>bqkit-test</code> relies on the starter.</p></div>
+  </div>
+</section>
+
+<section id="credentials">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Credentials</div>
+      <h2>Read with a service account's permissions.</h2>
+      <p>Set <code>impersonate-service-account</code> to read with a service account's permissions instead of your own.</p>
+    </div>
+    <figure class="diagram reveal">
+      <svg viewBox="0 0 960 170" role="img" aria-label="Credentials: Application Default Credentials are scoped to cloud-platform, then optionally impersonate a service account, and are used by the BigQuery clients.">
+        <rect class="box f-node" x="20" y="44" width="200" height="80" rx="14"/>
+        <text class="lbl" x="120" y="78" text-anchor="middle">Application Default</text>
+        <text class="lbl" x="120" y="100" text-anchor="middle">Credentials</text>
+
+        <rect class="box f-node" x="270" y="44" width="200" height="80" rx="14"/>
+        <text class="lbl" x="370" y="78" text-anchor="middle">Scoped</text>
+        <text class="sub" x="370" y="100" text-anchor="middle">cloud-platform</text>
+
+        <rect class="box f-accent dash" x="520" y="44" width="200" height="80" rx="14"/>
+        <text class="lbl" x="620" y="78" text-anchor="middle">Impersonated SA</text>
+        <text class="sub" x="620" y="100" text-anchor="middle">optional · 1 h tokens</text>
+
+        <rect class="box f-ok" x="770" y="44" width="170" height="80" rx="14"/>
+        <text class="lbl" x="855" y="78" text-anchor="middle">BigQuery</text>
+        <text class="sub" x="855" y="100" text-anchor="middle">REST + gRPC</text>
+
+        <path class="arrow" d="M222 84 H266"/>
+        <path class="arrow" d="M472 84 H516"/>
+        <path class="arrow" d="M722 84 H766"/>
+        <path class="arrow dash" d="M370 126 C 370 160, 855 160, 855 128"/>
+        <text class="edge" x="612" y="164" text-anchor="middle">no service account set</text>
+      </svg>
+    </figure>
+  </div>
+</section>
+
+<section id="testing" class="band">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Testing</div>
+      <h2>Declare the emulator, Spring Boot does the rest.</h2>
+      <p>Declare the emulator container: Spring Boot connects every bqkit bean to it.</p>
+    </div>
+    <div class="code-grid">
+      <div class="code reveal">
+        <div class="ct"><span class="tag">pom.xml</span> — test dependency
+          <button class="copy" data-copy="testdep">Copy</button></div>
+<pre id="testdep"><code><span class="t">&lt;dependency&gt;</span>
+    <span class="t">&lt;groupId&gt;</span>io.github.bqkit<span class="t">&lt;/groupId&gt;</span>
+    <span class="t">&lt;artifactId&gt;</span>bqkit-test<span class="t">&lt;/artifactId&gt;</span>
+    <span class="t">&lt;version&gt;</span><span class="bqkit-version">${bqkit.version}</span><span class="t">&lt;/version&gt;</span>
+    <span class="t">&lt;scope&gt;</span>test<span class="t">&lt;/scope&gt;</span>
+<span class="t">&lt;/dependency&gt;</span></code></pre>
+      </div>
+      <div class="code reveal">
+        <div class="ct"><span class="tag">java</span> — emulator container
+          <button class="copy" data-copy="container">Copy</button></div>
+<pre id="container"><code><span class="a">@SpringBootTest</span>
+<span class="a">@Testcontainers</span>
+<span class="k">class</span> <span class="t">ProductRepositoryTest</span> {
+
+    <span class="a">@Container</span>
+    <span class="a">@ServiceConnection</span>
+    <span class="k">static final</span> <span class="t">BqkitBigQueryEmulatorContainer</span> EMULATOR =
+            <span class="k">new</span> <span class="t">BqkitBigQueryEmulatorContainer</span>();
+}</code></pre>
+      </div>
+    </div>
+    <figure class="diagram reveal" style="margin-top:20px">
+      <svg viewBox="0 0 960 220" role="img" aria-label="Testing: the @ServiceConnection turns the emulator container into BigQueryConnectionDetails, which the starter uses to build clients pointing at the emulator's REST and gRPC ports.">
+        <rect class="zone" x="560" y="14" width="386" height="192" rx="18"/>
+        <text class="zlbl" x="580" y="38">DOCKER · TESTCONTAINERS</text>
+
+        <rect class="box f-accent" x="20" y="30" width="230" height="72" rx="12"/>
+        <text class="lbl" x="135" y="62" text-anchor="middle">@ServiceConnection</text>
+        <text class="sub" x="135" y="84" text-anchor="middle">bqkit-test</text>
+
+        <rect class="box f-node" x="300" y="30" width="230" height="72" rx="12"/>
+        <text class="lbl" x="415" y="62" text-anchor="middle">ConnectionDetails</text>
+        <text class="sub" x="415" y="84" text-anchor="middle">testproject · plaintext</text>
+
+        <rect class="box f-node" x="300" y="128" width="230" height="72" rx="12"/>
+        <text class="lbl" x="415" y="160" text-anchor="middle">bqkit beans</text>
+        <text class="sub" x="415" y="182" text-anchor="middle">BigQuery · ReadClient</text>
+
+        <rect class="box f-node" x="600" y="56" width="320" height="130" rx="14"/>
+        <text class="lbl" x="760" y="88" text-anchor="middle">goccy/bigquery-emulator 0.8.1</text>
+        <rect class="box f-accent row" x="624" y="106" width="130" height="56" rx="10"/>
+        <text class="lbl" x="689" y="132" text-anchor="middle">REST</text>
+        <text class="sub" x="689" y="150" text-anchor="middle">:9050</text>
+        <rect class="box f-ok row" x="766" y="106" width="130" height="56" rx="10"/>
+        <text class="lbl" x="831" y="132" text-anchor="middle">gRPC</text>
+        <text class="sub" x="831" y="150" text-anchor="middle">:9060 · Avro</text>
+
+        <path class="arrow" d="M252 66 H296"/>
+        <path class="arrow" d="M415 104 V124"/>
+        <path class="arrow flow" d="M532 164 C 570 164, 580 134, 620 134"/>
+      </svg>
+    </figure>
+    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>ghcr.io/goccy/bigquery-emulator:0.8.1</code> on project <code>testproject</code> and exposes the gRPC port of the Storage Read API.</p></div>
+
+    <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">A complete test</h3>
+    <div class="prose"><p>The application code queries through <code>QueryAvroReader</code>:</p></div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — ProductRepository
+        <button class="copy" data-copy="repository">Copy</button></div>
+<pre id="repository"><code><span class="a">@Repository</span>
+<span class="k">public class</span> <span class="t">ProductRepository</span> {
+
+    <span class="k">private static final</span> <span class="t">TableId</span> RESULT = <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"products_in_stock"</span>);
+
+    <span class="k">private final</span> <span class="t">QueryAvroReader</span> reader;
+
+    <span class="k">public</span> <span class="t">ProductRepository</span>(<span class="t">QueryAvroReader</span> reader) {
+        <span class="k">this</span>.reader = reader;
+    }
+
+    <span class="k">public</span> <span class="t">List</span>&lt;<span class="t">String</span>&gt; findNamesInStock() {
+        <span class="k">return</span> reader.query(<span class="s">"SELECT name FROM shop.products WHERE stock &gt; 0"</span>, RESULT).stream()
+                .map(row -&gt; row.get(<span class="s">"name"</span>).toString())
+                .toList();
+    }
+}</code></pre>
+    </div>
+    <div class="prose"><p>The test seeds the emulator with the <code>BigQuery</code> bean, calls the repository, then checks the result:</p></div>
+    <div class="code reveal">
+      <div class="ct"><span class="tag">java</span> — ProductRepositoryTest
+        <button class="copy" data-copy="test">Copy</button></div>
+<pre id="test"><code><span class="a">@SpringBootTest</span>
+<span class="a">@Testcontainers</span>
+<span class="k">class</span> <span class="t">ProductRepositoryTest</span> {
+
+    <span class="a">@Container</span>
+    <span class="a">@ServiceConnection</span>
+    <span class="k">static final</span> <span class="t">BqkitBigQueryEmulatorContainer</span> EMULATOR =
+            <span class="k">new</span> <span class="t">BqkitBigQueryEmulatorContainer</span>();
+
+    <span class="k">private static final</span> <span class="t">TableId</span> PRODUCTS = <span class="t">TableId</span>.of(<span class="s">"shop"</span>, <span class="s">"products"</span>);
+
+    <span class="a">@Autowired</span>
+    <span class="t">BigQuery</span> bigQuery;
+
+    <span class="a">@Autowired</span>
+    <span class="t">ProductRepository</span> repository;
+
+    <span class="a">@Test</span>
+    <span class="k">void</span> finds_the_names_of_the_products_in_stock() {
+        <span class="c">// Given</span>
+        bigQuery.create(<span class="t">DatasetInfo</span>.of(PRODUCTS.getDataset()));
+        bigQuery.create(<span class="t">TableInfo</span>.of(PRODUCTS, <span class="t">StandardTableDefinition</span>.of(<span class="t">Schema</span>.of(
+                <span class="t">Field</span>.of(<span class="s">"name"</span>, <span class="t">StandardSQLTypeName</span>.STRING),
+                <span class="t">Field</span>.of(<span class="s">"stock"</span>, <span class="t">StandardSQLTypeName</span>.INT64)))));
+        bigQuery.insertAll(<span class="t">InsertAllRequest</span>.newBuilder(PRODUCTS)
+                .addRow(<span class="t">Map</span>.of(<span class="s">"name"</span>, <span class="s">"banana"</span>, <span class="s">"stock"</span>, 3))
+                .addRow(<span class="t">Map</span>.of(<span class="s">"name"</span>, <span class="s">"apple"</span>, <span class="s">"stock"</span>, 0))
+                .addRow(<span class="t">Map</span>.of(<span class="s">"name"</span>, <span class="s">"cherry"</span>, <span class="s">"stock"</span>, 12))
+                .build());
+
+        <span class="c">// When</span>
+        <span class="t">List</span>&lt;<span class="t">String</span>&gt; names = repository.findNamesInStock();
+
+        <span class="c">// Then</span>
+        assertThat(names).containsExactlyInAnyOrder(<span class="s">"banana"</span>, <span class="s">"cherry"</span>);
+    }
+}</code></pre>
+    </div>
+    <div class="prose"><p>The emulator keeps its data for the lifetime of the container: with several tests in a class, give each its own dataset or destination table (see <a href="#emulator-limits">Emulator limits</a>).</p></div>
+  </div>
+</section>
+
+<section id="emulator-limits">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Emulator limits</div>
+      <h2>The emulator is not BigQuery.</h2>
+      <p>Keep these in mind when a test behaves differently from production.</p>
+    </div>
+    <div class="guar">
+      <div class="g reveal"><span class="tagk err">avro</span><div>
+        <p><strong>Hyphenated project ids break Avro reads.</strong> The emulator builds the Avro namespace from the project id, so <code>test-project</code> (the Testcontainers default) fails. <a href="https://github.com/testcontainers/testcontainers-java/pull/12123">testcontainers-java#12123</a> proposes <code>withProjectId</code>.</p>
+        <p>bqkit uses <code>testproject</code>.</p>
+      </div></div>
+      <div class="g reveal"><span class="tagk warn">query(sql)</span><div>
+        <p><strong><code>query(sql)</code> fails.</strong> The emulator names the anonymous result table after the job id, which is not a valid Avro name (<a href="https://github.com/goccy/bigquery-emulator/issues/527">bigquery-emulator#527</a>).</p>
+        <p>Use <code>query(sql, destination)</code> in tests.</p>
+      </div></div>
+      <div class="g reveal"><span class="tagk warn">truncate</span><div>
+        <p><strong><code>WRITE_TRUNCATE</code> is ignored.</strong> <code>query(sql, destination)</code> appends to the destination table instead of replacing it, so a second query into the same table returns the rows of both.</p>
+        <p>Use a distinct destination table per test, or drop it before each test.</p>
+      </div></div>
+    </div>
+    <figure class="diagram reveal" style="margin-top:20px">
+      <svg viewBox="0 0 960 256" role="img" aria-label="Running the same query twice into the same table: BigQuery keeps 2 rows, the emulator ends up with 4 rows.">
+        <text class="lbl" x="240" y="30" text-anchor="middle">BigQuery</text>
+        <text class="lbl" x="720" y="30" text-anchor="middle">Emulator 0.8.1</text>
+        <line x1="480" y1="16" x2="480" y2="236" stroke="var(--line)" stroke-width="1.5"/>
+
+        <text class="edge" x="40" y="70">after 1st</text>
+        <rect class="row f-node" x="130" y="54" width="300" height="24" rx="5"/><text class="sub" x="146" y="71">apple</text>
+        <rect class="row f-node" x="130" y="82" width="300" height="24" rx="5"/><text class="sub" x="146" y="99">pear</text>
+        <text class="edge" x="40" y="150">after 2nd</text>
+        <rect class="row f-ok" x="130" y="134" width="300" height="24" rx="5"/><text class="sub" x="146" y="151">apple</text>
+        <rect class="row f-ok" x="130" y="162" width="300" height="24" rx="5"/><text class="sub" x="146" y="179">pear</text>
+        <text class="edge" x="280" y="220" text-anchor="middle" style="fill:var(--ok)">2 rows: table replaced</text>
+
+        <text class="edge" x="520" y="70">after 1st</text>
+        <rect class="row f-node" x="610" y="54" width="300" height="24" rx="5"/><text class="sub" x="626" y="71">apple</text>
+        <rect class="row f-node" x="610" y="82" width="300" height="24" rx="5"/><text class="sub" x="626" y="99">pear</text>
+        <text class="edge" x="520" y="150">after 2nd</text>
+        <rect class="row f-node" x="610" y="120" width="300" height="24" rx="5"/><text class="sub" x="626" y="137">apple</text>
+        <rect class="row f-node" x="610" y="148" width="300" height="24" rx="5"/><text class="sub" x="626" y="165">pear</text>
+        <rect class="row f-err" x="610" y="176" width="300" height="24" rx="5"/><text class="sub" x="626" y="193">apple   (appended)</text>
+        <rect class="row f-err" x="610" y="204" width="300" height="24" rx="5"/><text class="sub" x="626" y="221">pear    (appended)</text>
+        <text class="edge" x="760" y="250" text-anchor="middle" style="fill:var(--err)">4 rows: duplicates</text>
+      </svg>
+      <figcaption>Same query, same destination table, run twice</figcaption>
+    </figure>
+    <div class="prose"><p>See also <a href="https://github.com/goccy/bigquery-emulator/pull/508">bigquery-emulator#508</a>.</p></div>
+    <p class="note reveal" style="margin-top:20px"><span class="tagk ok">prod</span><span>None of these limits affect BigQuery itself.</span></p>
+  </div>
+</section>
+
+<section id="build" class="final band">
+  <div class="wrap">
+    <div class="eyebrow reveal">Build</div>
+    <h2 class="reveal" style="margin-top:10px">Build it with Maven.</h2>
+    <p class="reveal">The tests need Docker.</p>
+    <div class="code reveal" style="max-width:420px; margin:26px auto 0; text-align:left">
+      <div class="ct"><span class="tag">shell</span>
+        <button class="copy" data-copy="build">Copy</button></div>
+<pre id="build"><code>mvn verify</code></pre>
+    </div>
+    <div class="cta reveal" style="justify-content:center; margin-top:26px">
+      <a class="btn primary" href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">View on GitHub</a>
+    </div>
   </div>
 </section>
 
@@ -344,7 +765,7 @@
   <div class="wrap">
     <span>bqkit — <a href="https://github.com/bqkit/bqkit/blob/HEAD/LICENSE">Apache License 2.0</a></span>
     <a href="https://github.com/bqkit/bqkit" target="_blank" rel="noopener">GitHub</a>
-    <span class="sp">Java 21 · Spring Boot 4</span>
+    <span class="sp">Java 21 · Spring Boot 3.5</span>
   </div>
 </footer>
 
@@ -379,7 +800,7 @@
   const pageMajor = (location.pathname.match(/\/(\d+)\.x\//) || [])[1];
 
   if (pageMajor) {
-    fetch("../versions.json", { cache: "no-cache" })
+    fetch("../versions.json")
       .then(response => response.ok ? response.json() : [])
       .then(majors => {
         if (majors.length === 0) {
@@ -392,6 +813,24 @@
       })
       .catch(() => {});
   }
+
+  fetch("https://api.github.com/repos/bqkit/bqkit/tags?per_page=100")
+    .then(response => response.ok ? response.json() : [])
+    .then(tags => {
+      const versions = tags
+        .map(tag => tag.name)
+        .filter(name => /^v\d+\.\d+\.\d+$/.test(name))
+        .map(name => name.slice(1).split(".").map(Number))
+        .filter(version => !pageMajor || version[0] === Number(pageMajor))
+        .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+      if (versions.length === 0) {
+        return;
+      }
+      const latest = versions[versions.length - 1].join(".");
+      document.querySelectorAll(".bqkit-version").forEach(el => { el.textContent = latest; });
+      document.getElementById("unreleased").hidden = true;
+    })
+    .catch(() => {});
 </script>
 </body>
 </html>

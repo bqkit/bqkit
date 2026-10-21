@@ -374,9 +374,6 @@ each its own dataset or destination table (see the limits below).
   (such as `test-project`, the Testcontainers default) breaks Avro reads.
   [testcontainers/testcontainers-java#12123](https://github.com/testcontainers/testcontainers-java/pull/12123)
   proposes `withProjectId`.
-- `QueryAvroReader.query(sql)` fails on the emulator: it names the anonymous result table after the
-  job id, which is not a valid Avro name ([goccy/bigquery-emulator#527](https://github.com/goccy/bigquery-emulator/issues/527)).
-  Use `query(sql, destination)` in tests. `QueryArrowReader` is not affected.
 - The emulator fails to send a `TIME` column in Avro (`cannot transform to binary time-micros`).
 - The emulator ignores `WRITE_TRUNCATE`: `query(sql, destination)` appends to the destination
   table instead of replacing it, so a second query into the same table returns the rows of both.

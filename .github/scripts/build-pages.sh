@@ -24,7 +24,11 @@ done
 majors=$(echo $built | tr ' ' '\n')
 [ -n "$majors" ] || { echo "No release/N.x branch has docs/" >&2; exit 1; }
 
-latest=$(echo "$majors" | tail -n 1)
+# The root opens the latest major with a release, or the latest major before the first release.
+released=$(for major in $majors; do
+  [ -z "$(git tag -l "v${major%.x}.*")" ] || echo "$major"
+done)
+latest=$(echo "${released:-$majors}" | tail -n 1)
 printf '%s\n' $majors | sed 's/.*/"&"/' | paste -sd, - | sed 's/.*/[&]/' > "$out/versions.json"
 
 cat > "$out/index.html" <<HTML

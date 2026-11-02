@@ -143,7 +143,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.15.0</version>
+                    <version>3.16.0</version>
                     <configuration>
                         <release>${java.version}</release>
                         <parameters>true</parameters>
@@ -192,7 +192,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>versions-maven-plugin</artifactId>
-                    <version>2.21.0</version>
+                    <version>2.23.0</version>
                     <configuration>
                         <generateBackupPoms>false</generateBackupPoms>
                     </configuration>

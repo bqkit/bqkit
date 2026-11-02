@@ -671,7 +671,7 @@
         <path class="arrow flow" d="M532 164 C 570 164, 580 134, 620 134"/>
       </svg>
     </figure>
-    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>DEFAULT_IMAGE</code>, the goccy/bigquery-emulator image bqkit is tested against, on project <code>testproject</code> and exposes the gRPC port of the Storage Read API. <code>@ServiceConnection</code> only accepts this container: the Testcontainers <code>BigQueryEmulatorContainer</code> does not expose the gRPC port. To pull the image from a mirror, pass a <code>DockerImageName</code> declared with <code>asCompatibleSubstituteFor("ghcr.io/goccy/bigquery-emulator")</code>. With spring-cloud-gcp on the classpath, exclude <code>GcpBigQueryAutoConfiguration</code> in tests: its client would keep querying Google while bqkit reads from the emulator.</p></div>
+    <div class="prose"><p><code>BqkitBigQueryEmulatorContainer</code> runs <code>DEFAULT_IMAGE</code>, the goccy/bigquery-emulator image bqkit is tested against, on project <code>testproject</code>. <code>@ServiceConnection</code> only accepts this container: the Testcontainers <code>BigQueryEmulatorContainer</code> starts the emulator on <code>test-project</code>, and the emulator's Avro codec rejects the hyphen of that id. To pull the image from a mirror, pass a <code>DockerImageName</code> declared with <code>asCompatibleSubstituteFor("ghcr.io/goccy/bigquery-emulator")</code>. With spring-cloud-gcp on the classpath, exclude <code>GcpBigQueryAutoConfiguration</code> in tests: its client would keep querying Google while bqkit reads from the emulator.</p></div>
 
     <h3 class="reveal" style="margin-top:44px; font-size:clamp(22px,2.6vw,28px)">A complete test</h3>
     <div class="prose"><p>The application code queries through <code>QueryAvroReader</code>:</p></div>
@@ -753,10 +753,6 @@
       <div class="g reveal"><span class="tagk err">avro</span><div>
         <p><strong>Hyphenated project ids break Avro reads.</strong> The emulator builds the Avro namespace from the project id, so <code>test-project</code> (the Testcontainers default) fails. <a href="https://github.com/testcontainers/testcontainers-java/pull/12123">testcontainers-java#12123</a> proposes <code>withProjectId</code>.</p>
         <p>bqkit uses <code>testproject</code>.</p>
-      </div></div>
-      <div class="g reveal"><span class="tagk warn">query(sql)</span><div>
-        <p><strong><code>query(sql)</code> fails in Avro.</strong> The emulator names the anonymous result table after the job id, which is not a valid Avro name (<a href="https://github.com/goccy/bigquery-emulator/issues/527">bigquery-emulator#527</a>). <code>QueryArrowReader</code> is not affected.</p>
-        <p>Use <code>query(sql, destination)</code> in tests.</p>
       </div></div>
       <div class="g reveal"><span class="tagk warn">truncate</span><div>
         <p><strong><code>WRITE_TRUNCATE</code> is ignored.</strong> <code>query(sql, destination)</code> appends to the destination table instead of replacing it, so a second query into the same table returns the rows of both.</p>

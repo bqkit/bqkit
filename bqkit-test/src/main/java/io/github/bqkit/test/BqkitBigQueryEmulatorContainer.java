@@ -9,7 +9,7 @@ import org.testcontainers.utility.DockerImageName;
  *
  * <p>The emulator builds the Avro namespace from the project id, and the {@code test-project} id set by
  * {@link BigQueryEmulatorContainer} contains a hyphen, which its own Avro codec rejects. This container
- * starts the emulator on {@value #PROJECT_ID} and also exposes the gRPC port of the Storage Read API.
+ * starts the emulator on {@value #PROJECT_ID}.
  */
 public class BqkitBigQueryEmulatorContainer extends BigQueryEmulatorContainer {
 

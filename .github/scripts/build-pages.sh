@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Builds the documentation site: docs/ of each release/N.x branch under N.x/,
-# versions.json listing the majors, and a root page redirecting to the latest one.
+# versions.json listing the majors, and a root page redirecting to the latest released one.
+# The second argument is a file listing the tags of the published GitHub releases, one per line.
 set -euo pipefail
 
-out="${1:?usage: build-pages.sh <output directory>}"
+usage="usage: build-pages.sh <output directory> <published release tags file>"
+out="${1:?$usage}"
+published="${2:?$usage}"
+[ -f "$published" ] || { echo "No such file: $published" >&2; exit 1; }
 rm -rf "$out"
 mkdir -p "$out"
 
@@ -24,11 +28,16 @@ done
 majors=$(echo $built | tr ' ' '\n')
 [ -n "$majors" ] || { echo "No release/N.x branch has docs/" >&2; exit 1; }
 
-# The root opens the latest major with a release, or the latest major before the first release.
+# The root opens the latest major with a published final release (vN.x.y, no pre-release suffix), or
+# the oldest major before the first one.
 released=$(for major in $majors; do
-  [ -z "$(git tag -l "v${major%.x}.*")" ] || echo "$major"
-done)
-latest=$(echo "${released:-$majors}" | tail -n 1)
+  grep -qE "^v${major%.x}\.[0-9]+\.[0-9]+$" "$published" && echo "$major"
+done || true)
+if [ -n "$released" ]; then
+  latest=$(echo "$released" | tail -n 1)
+else
+  latest=$(echo "$majors" | head -n 1)
+fi
 printf '%s\n' $majors | sed 's/.*/"&"/' | paste -sd, - | sed 's/.*/[&]/' > "$out/versions.json"
 
 cat > "$out/index.html" <<HTML

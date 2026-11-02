@@ -278,9 +278,9 @@ class ProductRepositoryTest {
 }
 ```
 
-`BqkitBigQueryEmulatorContainer` runs `DEFAULT_IMAGE`, the goccy/bigquery-emulator image bqkit is tested against, on project `testproject`
-and exposes the gRPC port of the Storage Read API. `@ServiceConnection` only accepts this container: the
-Testcontainers `BigQueryEmulatorContainer` does not expose the gRPC port.
+`BqkitBigQueryEmulatorContainer` runs `DEFAULT_IMAGE`, the goccy/bigquery-emulator image bqkit is tested against, on project `testproject`.
+`@ServiceConnection` only accepts this container: the Testcontainers `BigQueryEmulatorContainer` starts the emulator
+on `test-project`, and the emulator's Avro codec rejects the hyphen of that id.
 
 To pull the emulator image from a mirror, declare it as a substitute for the goccy image:
 

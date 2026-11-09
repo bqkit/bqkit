@@ -58,7 +58,7 @@
         <project.build.outputTimestamp>2026-10-20T00:00:00Z</project.build.outputTimestamp>
         <revision>2.0.0-SNAPSHOT</revision>
         <spring-boot.version>4.1.1</spring-boot.version>
-        <google-cloud-libraries-bom.version>26.90.0</google-cloud-libraries-bom.version>
+        <google-cloud-libraries-bom.version>26.92.0</google-cloud-libraries-bom.version>
         <avro.version>1.12.2</avro.version>
         <arrow.version>17.0.0</arrow.version>
         <spring-cloud-gcp.version>8.2.4</spring-cloud-gcp.version>

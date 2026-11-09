@@ -63,7 +63,7 @@
         <arrow.version>17.0.0</arrow.version>
         <spring-cloud-gcp.version>8.2.4</spring-cloud-gcp.version>
         <bigquery-emulator.image>ghcr.io/goccy/bigquery-emulator:0.8.1</bigquery-emulator.image>
-        <jacoco.version>0.8.15</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
         <checkstyle.version>13.11.0</checkstyle.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <spotbugs-maven-plugin.version>4.10.5.0</spotbugs-maven-plugin.version>

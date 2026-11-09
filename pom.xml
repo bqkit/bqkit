@@ -61,7 +61,7 @@
         <google-cloud-libraries-bom.version>26.90.0</google-cloud-libraries-bom.version>
         <avro.version>1.12.2</avro.version>
         <arrow.version>17.0.0</arrow.version>
-        <spring-cloud-gcp.version>7.4.10</spring-cloud-gcp.version>
+        <spring-cloud-gcp.version>7.5.2</spring-cloud-gcp.version>
         <bigquery-emulator.image>ghcr.io/goccy/bigquery-emulator:0.8.1</bigquery-emulator.image>
         <jacoco.version>0.8.15</jacoco.version>
         <checkstyle.version>13.4.0</checkstyle.version>
